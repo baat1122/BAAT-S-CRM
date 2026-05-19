@@ -26,13 +26,13 @@ export default function AnalyticsPage() {
       const { data: thisMonthOrders } = await supabase
         .from('orders')
         .select('profit')
-        .gte('created_at', firstDayThisMonth);
+        .gte('created_at', firstDayThisMonth) as { data: { profit: number }[] | null };
 
       const { data: lastMonthOrders } = await supabase
         .from('orders')
         .select('profit')
         .gte('created_at', firstDayLastMonth)
-        .lt('created_at', firstDayThisMonth);
+        .lt('created_at', firstDayThisMonth) as { data: { profit: number }[] | null };
 
       const thisMonthProfit = thisMonthOrders?.reduce((acc, curr) => acc + (curr.profit || 0), 0) || 0;
       const lastMonthProfit = lastMonthOrders?.reduce((acc, curr) => acc + (curr.profit || 0), 0) || 0;
@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
         .from('orders')
         .select('created_at, profit')
         .gte('created_at', thirtyDaysAgo)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true }) as { data: { created_at: string; profit: number }[] | null };
 
       const dailyData: Record<string, number> = {};
       
