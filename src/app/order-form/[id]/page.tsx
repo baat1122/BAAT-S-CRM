@@ -226,7 +226,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Loading ──
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#00f0ff", display: "flex", alignItems: "center", gap: "12px", fontSize: "18px" }}>
           <Loader2 className="animate-spin" size={24} />
           Loading your order details…
@@ -237,7 +237,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
   if (!order) {
     return (
-      <div style={{ minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#ef4444", fontSize: "18px" }}>Order not found. Please check your link.</div>
       </div>
     );
@@ -246,7 +246,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Security Gate Screen ──
   if (!isAuthenticated && !submitted) {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
         <div className="fade-in" style={{ width: "100%", maxWidth: "440px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "20px", padding: "40px 32px" }}>
           <div style={{ textAlign: "center", marginBottom: "32px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
@@ -302,7 +302,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             .print-area { padding: 20px; }
           }
         `}</style>
-        <div className="print-area" style={{ minHeight: "100vh", background: "#050a18", padding: "32px 16px" }}>
+        <div className="print-area" style={{ width: "100%", minHeight: "100vh", background: "#050a18", padding: "32px 16px" }}>
           <div style={{ maxWidth: "720px", margin: "0 auto" }}>
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -399,7 +399,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
         .fade-in { animation: fadeIn 0.5s ease both; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", padding: "32px 16px 80px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", padding: "32px 16px 80px" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
           {/* ── Header ── */}
