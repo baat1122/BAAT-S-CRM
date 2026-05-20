@@ -99,6 +99,16 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
                 <Edit size={16} /> Edit Order
               </button>
 
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/order-form/${order.id}`);
+                  alert("Link copied to clipboard! Send this to the customer.");
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-foreground/10 text-foreground font-bold rounded-xl hover:bg-foreground/20 transition-colors text-sm"
+              >
+                <LinkIcon size={16} /> Send to Customer
+              </button>
+
               <div className="group relative">
                 <button className="flex items-center gap-2 px-4 py-2 bg-neon-blue text-dark-navy font-bold rounded-xl hover:bg-electric-cyan transition-colors shadow-[0_0_10px_rgba(0,240,255,0.3)] text-sm">
                   <Download size={16} /> Generate PDFs

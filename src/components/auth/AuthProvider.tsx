@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isPublicRoute = pathname?.startsWith("/order-form") ?? false;
+
   const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isPublicRoute);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -57,6 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
+
+  // Public routes skip the auth gate entirely (customers don't need an account)
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return <div className="h-screen w-full flex items-center justify-center bg-background text-neon-blue">Loading Neon CRM...</div>;
