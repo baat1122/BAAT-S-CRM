@@ -43,13 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthError("");
     setLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       setAuthError(error.message);
+      setLoading(false);
+    } else {
+      // Immediately update session — don't wait for onAuthStateChange
+      setSession(data.session);
       setLoading(false);
     }
   };
