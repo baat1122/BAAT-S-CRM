@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, use } from "react";
 import { supabase } from "@/lib/supabase/client";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import {
   CheckCircle,
   Truck,
@@ -69,11 +71,13 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [vehicleVins, setVehicleVins] = useState<Record<string, string>>({});
 
-  // Signature
+  // Signature & PDF
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -203,7 +207,26 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     setSubmitted(true);
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = async () => {
+    if (!pdfRef.current) return;
+    setIsGeneratingPdf(true);
+    try {
+      const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Order_Agreement_${order.order_id}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Error generating PDF. Please try again.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,7 +325,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             .print-area { padding: 20px; }
           }
         `}</style>
-        <div className="print-area" style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", padding: "32px 16px" }}>
+        <div className="print-area" ref={pdfRef} style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", padding: "32px 16px" }}>
           <div style={{ maxWidth: "720px", margin: "0 auto" }}>
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -338,8 +361,18 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             </div>
 
             <div className="no-print" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-              <button onClick={handlePrint} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 32px", background: "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer" }}>
-                <Download size={18} /> Download PDF
+              <button 
+                onClick={() => setSubmitted(false)} 
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 24px", background: "#f1f5f9", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer" }}
+              >
+                Edit Submission
+              </button>
+              <button 
+                onClick={handlePrint} 
+                disabled={isGeneratingPdf}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 32px", background: isGeneratingPdf ? "#94a3b8" : "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
+              >
+                {isGeneratingPdf ? <><Loader2 size={18} className="animate-spin" /> Generating...</> : <><Download size={18} /> Download PDF</>}
               </button>
             </div>
 
