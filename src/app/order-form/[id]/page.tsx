@@ -85,7 +85,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     async function fetchData() {
       const { data: orderData } = await supabase
         .from("orders")
-        .select(\`*, customers (customer_name, phone, email)\`)
+        .select(`*, customers (customer_name, phone, email)`)
         .eq("id", id)
         .single() as { data: any };
 
@@ -148,9 +148,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#00f0ff"; // Neon Cyan Signature!
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "#00f0ff";
+    ctx.strokeStyle = "#00d0f0"; // Vibrant neon blue signature
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -215,7 +213,6 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     if (!pdfRef.current) return;
     setIsGeneratingPdf(true);
     try {
-      // Temporarily show the hidden div to capture it, but keep it out of viewport
       pdfRef.current.style.display = 'block';
       const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
       pdfRef.current.style.display = 'none';
@@ -227,7 +224,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(\`Order_Agreement_\${order.order_id}.pdf\`);
+      pdf.save(`Order_Agreement_${order.order_id}.pdf`);
     } catch (err) {
       console.error("PDF generation error:", err);
       alert("Error generating PDF. Please try again.");
@@ -241,8 +238,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     const cleanInput = authInput.trim().toLowerCase();
     const orderEmail = (order?.customers?.email || "").toLowerCase().trim();
     
-    const cleanPhoneInput = authInput.replace(/\\D/g,'');
-    const orderPhone = (order?.customers?.phone || "").replace(/\\D/g,'');
+    const cleanPhoneInput = authInput.replace(/\D/g,'');
+    const orderPhone = (order?.customers?.phone || "").replace(/\D/g,'');
 
     if (
       (orderEmail && cleanInput === orderEmail) || 
@@ -254,21 +251,21 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  // ── UI Theme Globals ──
-  const themeBg = "linear-gradient(145deg, #020617 0%, #0a1024 100%)";
-  const panelBg = "rgba(15, 23, 42, 0.6)";
-  const glassBorder = "1px solid rgba(0, 240, 255, 0.15)";
-  const glassShadow = "0 8px 32px 0 rgba(0, 240, 255, 0.05)";
-  const neonCyan = "#00f0ff";
+  // ── UI Neon Light Theme Globals ──
+  const themeBg = "linear-gradient(135deg, #f8fafc 0%, #eef2f6 100%)";
+  const panelBg = "#ffffff";
+  const glassBorder = "1px solid rgba(0, 208, 240, 0.15)";
+  const glassShadow = "0 10px 40px -10px rgba(0, 208, 240, 0.08)";
+  const neonCyan = "#00d0f0"; // Vibrant neon cyan/blue
   const neonBlue = "#0ea5e9";
-  const textPrimary = "#f8fafc";
-  const textSecondary = "#94a3b8";
+  const textPrimary = "#0f172a"; // Crisp Slate
+  const textSecondary = "#64748b"; // Muted Slate
 
   // ── Loading ──
   if (loading) {
     return (
       <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: neonCyan, display: "flex", alignItems: "center", gap: "12px", fontSize: "18px", textShadow: \`0 0 10px \${neonCyan}\` }}>
+        <div style={{ color: neonBlue, display: "flex", alignItems: "center", gap: "12px", fontSize: "18px", fontWeight: 700 }}>
           <Loader2 className="animate-spin" size={28} />
           Loading Secure Portal…
         </div>
@@ -279,7 +276,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   if (!order) {
     return (
       <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#ef4444", fontSize: "18px", textShadow: "0 0 10px rgba(239,68,68,0.5)" }}>Order not found. Please check your link.</div>
+        <div style={{ color: "#ef4444", fontSize: "18px", fontWeight: 600 }}>Order not found. Please check your link.</div>
       </div>
     );
   }
@@ -288,19 +285,19 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   if (!isAuthenticated && !submitted) {
     return (
       <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-        <div className="fade-in glass-panel" style={{ width: "100%", maxWidth: "440px", background: panelBg, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: glassBorder, borderRadius: "24px", padding: "48px 32px", boxShadow: glassShadow }}>
+        <div className="fade-in glass-panel" style={{ width: "100%", maxWidth: "440px", background: panelBg, border: glassBorder, borderRadius: "24px", padding: "48px 32px", boxShadow: glassShadow }}>
           <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: \`0 0 30px \${neonBlue}40\` }}>
-              <ShieldCheck size={32} color="#020617" />
+            <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: `0 8px 20px rgba(0, 208, 240, 0.25)` }}>
+              <ShieldCheck size={32} color="#ffffff" />
             </div>
-            <h1 style={{ color: textPrimary, fontSize: "28px", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.5px" }}>Secure Access</h1>
+            <h1 style={{ color: textPrimary, fontSize: "28px", fontWeight: 850, marginBottom: "8px", letterSpacing: "-0.5px" }}>Secure Access</h1>
             <p style={{ color: textSecondary, fontSize: "15px", lineHeight: "1.6" }}>
-              Verify your identity to view order <strong style={{color: neonCyan}}>{order.order_id}</strong>
+              Verify your identity to view order <strong style={{color: neonBlue}}>{order.order_id}</strong>
             </p>
           </div>
           
           {authErrorMsg && (
-            <div className="fade-in" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="fade-in" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
               <AlertCircle size={18} /> {authErrorMsg}
             </div>
           )}
@@ -315,26 +312,26 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 placeholder="Enter email or phone" 
                 required
                 className="neon-input"
-                style={{ width: "100%", padding: "16px", background: "rgba(2, 6, 23, 0.7)", border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: "14px", color: textPrimary, fontSize: "16px", outline: "none", transition: "all 0.3s ease" }}
+                style={{ width: "100%", padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "14px", color: textPrimary, fontSize: "16px", outline: "none", transition: "all 0.3s ease" }}
               />
             </div>
             <button 
               type="submit"
               className="neon-btn hover-glow"
-              style={{ width: "100%", padding: "18px", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: "#020617", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "16px", cursor: "pointer", transition: "all 0.3s ease", boxShadow: \`0 0 20px \${neonCyan}40\` }}
+              style={{ width: "100%", padding: "18px", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "16px", cursor: "pointer", transition: "all 0.3s ease", boxShadow: `0 8px 25px rgba(14, 165, 233, 0.3)` }}
             >
               Access My Order
             </button>
           </form>
           <div style={{ textAlign: "center", color: textSecondary, fontSize: "13px", marginTop: "32px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-            <span style={{width:"8px", height:"8px", borderRadius:"50%", background:neonCyan, boxShadow:\`0 0 8px \${neonCyan}\`}}></span> Protected by Neon Auto Transport
+            <span style={{width:"8px", height:"8px", borderRadius:"50%", background:neonCyan, boxShadow:`0 0 8px ${neonCyan}`}}></span> Protected by Neon Auto Transport
           </div>
         </div>
         <style>{`
           @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
           .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-          .neon-input:focus { border-color: ${neonCyan} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px ${neonCyan}10 !important; }
-          .hover-glow:hover { transform: translateY(-2px); box-shadow: 0 10px 25px ${neonCyan}60 !important; }
+          .neon-input:focus { border-color: ${neonBlue} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px rgba(0,208,240,0.02) !important; }
+          .hover-glow:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(14, 165, 233, 0.45) !important; }
         `}</style>
       </div>
     );
@@ -364,7 +361,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               <p style={{ margin: "5px 0" }}><strong>Name:</strong> {customerName}</p>
               <p style={{ margin: "5px 0" }}><strong>Phone:</strong> {customerPhone}</p>
               <p style={{ margin: "5px 0" }}><strong>Email:</strong> {customerEmail}</p>
-              <p style={{ margin: "5px 0" }}><strong>Price:</strong> \${order.customer_price || 0}</p>
+              <p style={{ margin: "5px 0" }}><strong>Price:</strong> ${order.customer_price || 0}</p>
             </div>
             <div style={{ width: "48%" }}>
               <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Route</h3>
@@ -393,19 +390,19 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
         {/* END HIDDEN PDF TEMPLATE */}
 
         <div className="slide-up" style={{ maxWidth: "600px", width: "100%" }}>
-          <div style={{ background: panelBg, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: glassBorder, borderRadius: "24px", padding: "48px 32px", textAlign: "center", boxShadow: glassShadow, marginBottom: "24px" }}>
-            <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: \`rgba(34, 197, 94, 0.1)\`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: \`0 0 30px rgba(34, 197, 94, 0.2)\` }}>
+          <div style={{ background: panelBg, border: glassBorder, borderRadius: "24px", padding: "48px 32px", textAlign: "center", boxShadow: glassShadow, marginBottom: "24px" }}>
+            <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: `rgba(34, 197, 94, 0.08)`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: `0 8px 20px rgba(34, 197, 94, 0.15)` }}>
               <CheckCircle size={48} color="#22c55e" />
             </div>
-            <h1 style={{ color: "#22c55e", fontSize: "32px", fontWeight: 800, marginBottom: "12px", textShadow: "0 0 15px rgba(34, 197, 94, 0.3)" }}>Order Confirmed!</h1>
+            <h1 style={{ color: "#22c55e", fontSize: "32px", fontWeight: 800, marginBottom: "12px" }}>Order Confirmed!</h1>
             <p style={{ color: textSecondary, fontSize: "16px", marginBottom: "32px", lineHeight: "1.6" }}>
               Thank you, <strong style={{ color: textPrimary }}>{customerName}</strong>.<br/>
-              Your transport agreement for <strong style={{ color: neonCyan }}>{order.order_id}</strong> is secure.
+              Your transport agreement for <strong style={{ color: neonBlue }}>{order.order_id}</strong> is secure.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", textAlign: "left", background: "rgba(2, 6, 23, 0.5)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(148, 163, 184, 0.1)" }}>
-              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Route</div><div style={{ color: textPrimary, fontSize: "14px" }}>{pickupFullAddress.split(',')[0]} → {dropoffFullAddress.split(',')[0]}</div></div>
-              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Agreed Rate</div><div style={{ color: neonCyan, fontWeight: 800, fontSize: "18px" }}>\${order.customer_price || 0}</div></div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", textAlign: "left", background: "#f8fafc", borderRadius: "16px", padding: "24px", border: "1px solid #cbd5e1" }}>
+              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Route</div><div style={{ color: textPrimary, fontSize: "14px", fontWeight: 700 }}>{pickupFullAddress.split(',')[0]} → {dropoffFullAddress.split(',')[0]}</div></div>
+              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Agreed Rate</div><div style={{ color: neonBlue, fontWeight: 800, fontSize: "18px" }}>${order.customer_price || 0}</div></div>
             </div>
           </div>
 
@@ -414,14 +411,14 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               onClick={handlePrint} 
               disabled={isGeneratingPdf}
               className="hover-scale"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "20px", background: isGeneratingPdf ? "rgba(148, 163, 184, 0.2)" : \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: isGeneratingPdf ? textSecondary : "#020617", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "16px", cursor: isGeneratingPdf ? "not-allowed" : "pointer", transition: "all 0.3s ease", boxShadow: isGeneratingPdf ? "none" : \`0 0 25px \${neonCyan}50\` }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "20px", background: isGeneratingPdf ? "#94a3b8" : `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "16px", cursor: isGeneratingPdf ? "not-allowed" : "pointer", transition: "all 0.3s ease", boxShadow: isGeneratingPdf ? "none" : `0 8px 25px rgba(14, 165, 233, 0.35)` }}
             >
               {isGeneratingPdf ? <><Loader2 size={20} className="animate-spin" /> Generating PDF...</> : <><Download size={20} /> Download Official Agreement</>}
             </button>
             <button 
               onClick={() => setSubmitted(false)} 
               className="hover-scale"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "18px", background: "transparent", color: textSecondary, border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: "16px", fontWeight: 700, fontSize: "15px", cursor: "pointer", transition: "all 0.3s ease" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "18px", background: "#ffffff", color: textSecondary, border: "1px solid #cbd5e1", borderRadius: "16px", fontWeight: 700, fontSize: "15px", cursor: "pointer", transition: "all 0.3s ease" }}
             >
               <ChevronLeft size={18} /> Edit Submission
             </button>
@@ -435,8 +432,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   const inputStyle = {
     width: "100%",
     padding: "16px",
-    background: "rgba(2, 6, 23, 0.6)",
-    border: "1px solid rgba(148, 163, 184, 0.15)",
+    background: "#f8fafc",
+    border: "1px solid #cbd5e1",
     borderRadius: "14px",
     color: textPrimary,
     fontSize: "15px",
@@ -445,12 +442,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     transition: "all 0.3s ease",
   };
 
-  const labelStyle = { display: "block", color: textSecondary, fontSize: "12px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "8px" };
+  const labelStyle = { display: "block", color: textSecondary, fontSize: "12px", fontWeight: 750, textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "8px" };
 
   const sectionStyle = {
     background: panelBg,
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
     border: glassBorder,
     borderRadius: "24px",
     padding: "32px",
@@ -464,50 +459,50 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     gap: "14px",
     marginBottom: "28px",
     paddingBottom: "16px",
-    borderBottom: "1px solid rgba(148, 163, 184, 0.1)",
+    borderBottom: "1px solid #e2e8f0",
   };
 
   return (
     <>
-      <style>{\`
+      <style>{`
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        input:focus, textarea:focus { border-color: \${neonCyan} !important; box-shadow: 0 0 0 4px \${neonCyan}20, inset 0 0 10px \${neonCyan}10 !important; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
+        input:focus, textarea:focus { border-color: ${neonBlue} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px rgba(0,208,240,0.02) !important; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: \${neonBlue}; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
         .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.2s; }
         .delay-3 { animation-delay: 0.3s; }
         .delay-4 { animation-delay: 0.4s; }
-      \`}</style>
+      `}</style>
 
       <div style={{ width: "100%", minHeight: "100vh", background: themeBg, padding: "40px 20px 100px", overflowX: "hidden" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
           {/* ── Header ── */}
           <div className="fade-up" style={{ textAlign: "center", marginBottom: "48px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "12px 24px", background: "rgba(0, 240, 255, 0.05)", border: "1px solid rgba(0, 240, 255, 0.2)", borderRadius: "100px", boxShadow: \`0 0 20px \${neonCyan}10\` }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Truck size={18} color="#020617" />
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "12px 24px", background: "rgba(0, 208, 240, 0.05)", border: "1px solid rgba(0, 208, 240, 0.15)", borderRadius: "100px", boxShadow: `0 4px 15px rgba(0, 208, 240, 0.08)` }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Truck size={18} color="#ffffff" />
               </div>
-              <div style={{ color: neonCyan, fontWeight: 800, fontSize: "16px", letterSpacing: "3px" }}>NEON AUTO TRANSPORT</div>
+              <div style={{ color: neonBlue, fontWeight: 850, fontSize: "16px", letterSpacing: "3px" }}>NEON AUTO TRANSPORT</div>
             </div>
-            <h1 style={{ color: textPrimary, fontSize: "40px", fontWeight: 900, marginBottom: "16px", letterSpacing: "-1px", textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+            <h1 style={{ color: textPrimary, fontSize: "40px", fontWeight: 900, marginBottom: "16px", letterSpacing: "-1px" }}>
               Order Confirmation
             </h1>
             <div style={{ color: textSecondary, fontSize: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-              Order <span style={{ color: neonCyan, fontWeight: 700, padding: "4px 10px", background: "rgba(0,240,255,0.1)", borderRadius: "6px" }}>#{order.order_id}</span>
+              Order <span style={{ color: neonBlue, fontWeight: 700, padding: "4px 10px", background: "rgba(14, 165, 233, 0.08)", borderRadius: "6px" }}>#{order.order_id}</span>
             </div>
           </div>
 
           {/* ── Customer Info ── */}
           <div className="fade-up delay-1" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
-                <User size={20} color={neonCyan} />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
+                <User size={20} color={neonBlue} />
               </div>
               <div>
                 <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Your Information</div>
@@ -533,8 +528,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           {/* ── Vehicle Info ── */}
           <div className="fade-up delay-2" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
-                <Car size={20} color={neonCyan} />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
+                <Car size={20} color={neonBlue} />
               </div>
               <div>
                 <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Vehicle Details</div>
@@ -543,13 +538,13 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {vehicles.map((v, i) => (
-                <div key={v.id} style={{ padding: "20px", background: "rgba(2, 6, 23, 0.5)", border: "1px solid rgba(148, 163, 184, 0.1)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+                <div key={v.id} style={{ padding: "20px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
                   <div>
                     <div style={{ color: textPrimary, fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>
                       {v.year} {v.make} {v.model}
                     </div>
                     <div style={{ display: "flex", gap: "8px" }}>
-                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: v.is_operable ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: v.is_operable ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: v.is_operable ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)", color: v.is_operable ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
                         {v.is_operable ? "Operable" : "Inoperable"}
                       </span>
                       <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: "rgba(148,163,184,0.1)", color: textSecondary, fontWeight: 700 }}>
@@ -560,7 +555,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                   <div style={{ flex: "1", minWidth: "250px", maxWidth: "350px" }}>
                     <label style={{ ...labelStyle, fontSize: "11px", marginBottom: "4px" }}>Vehicle VIN (Optional)</label>
                     <input 
-                      style={{ ...inputStyle, padding: "12px", fontSize: "14px", fontFamily: "monospace" }} 
+                      style={{ ...inputStyle, background: "#ffffff", padding: "12px", fontSize: "14px", fontFamily: "monospace" }} 
                       value={vehicleVins[v.id] || ""} 
                       onChange={e => setVehicleVins(prev => ({...prev, [v.id]: e.target.value}))} 
                       placeholder="17-Digit VIN" 
@@ -574,8 +569,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           {/* ── Route & Contacts ── */}
           <div className="fade-up delay-3" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
-                <MapPin size={20} color={neonCyan} />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
+                <MapPin size={20} color={neonBlue} />
               </div>
               <div>
                 <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Route & Contacts</div>
@@ -585,22 +580,22 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
               {/* Pickup */}
-              <div style={{ paddingRight: "16px", borderRight: "1px solid rgba(148, 163, 184, 0.1)" }}>
-                <div style={{ color: neonCyan, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonCyan,boxShadow:\`0 0 10px \${neonCyan}\`}}></div> Origin / Pickup</div>
+              <div style={{ paddingRight: "16px", borderRight: "1px solid #e2e8f0" }}>
+                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:`0 0 10px ${neonBlue}`}}></div> Origin / Pickup</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, minHeight: "80px", resize: "none"}} value={pickupFullAddress} onChange={e => setPickupFullAddress(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Name</label><input style={inputStyle} value={pickupContactName} onChange={e => setPickupContactName(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Phone</label><input style={inputStyle} value={pickupContactPhone} onChange={e => setPickupContactPhone(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, background: "#ffffff", minHeight: "80px", resize: "none"}} value={pickupFullAddress} onChange={e => setPickupFullAddress(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Name</label><input style={{...inputStyle, background: "#ffffff"}} value={pickupContactName} onChange={e => setPickupContactName(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Phone</label><input style={{...inputStyle, background: "#ffffff"}} value={pickupContactPhone} onChange={e => setPickupContactPhone(e.target.value)} /></div>
                 </div>
               </div>
 
               {/* Dropoff */}
               <div>
-                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:\`0 0 10px \${neonBlue}\`}}></div> Destination / Dropoff</div>
+                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:`0 0 10px ${neonBlue}`}}></div> Destination / Dropoff</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, minHeight: "80px", resize: "none"}} value={dropoffFullAddress} onChange={e => setDropoffFullAddress(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Name</label><input style={inputStyle} value={dropoffContactName} onChange={e => setDropoffContactName(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Phone</label><input style={inputStyle} value={dropoffContactPhone} onChange={e => setDropoffContactPhone(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, background: "#ffffff", minHeight: "80px", resize: "none"}} value={dropoffFullAddress} onChange={e => setDropoffFullAddress(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Name</label><input style={{...inputStyle, background: "#ffffff"}} value={dropoffContactName} onChange={e => setDropoffContactName(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Phone</label><input style={{...inputStyle, background: "#ffffff"}} value={dropoffContactPhone} onChange={e => setDropoffContactPhone(e.target.value)} /></div>
                 </div>
               </div>
             </div>
@@ -609,8 +604,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           {/* ── Terms & Signature ── */}
           <div className="fade-up delay-4" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
-                <PenLine size={20} color={neonCyan} />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
+                <PenLine size={20} color={neonBlue} />
               </div>
               <div>
                 <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Terms & Signature</div>
@@ -618,16 +613,16 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               </div>
             </div>
 
-            <div style={{ background: "rgba(2, 6, 23, 0.7)", border: "1px solid rgba(148, 163, 184, 0.1)", borderRadius: "16px", padding: "24px", height: "240px", overflowY: "auto", marginBottom: "24px", color: textSecondary, fontSize: "13px", lineHeight: "1.8", whiteSpace: "pre-wrap", boxShadow: "inset 0 4px 20px rgba(0,0,0,0.5)" }}>
+            <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "16px", padding: "24px", height: "240px", overflowY: "auto", marginBottom: "24px", color: textSecondary, fontSize: "13px", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
               {TERMS}
             </div>
 
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", marginBottom: "32px", padding: "16px", background: termsAccepted ? "rgba(0,240,255,0.05)" : "transparent", border: \`1px solid \${termsAccepted ? "rgba(0,240,255,0.3)" : "rgba(148, 163, 184, 0.2)"}\`, borderRadius: "14px", transition: "all 0.3s ease" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", marginBottom: "32px", padding: "16px", background: termsAccepted ? "rgba(0,208,240,0.03)" : "transparent", border: `1px solid ${termsAccepted ? "rgba(0,208,240,0.3)" : "#cbd5e1"}`, borderRadius: "14px", transition: "all 0.3s ease" }}>
               <input 
                 type="checkbox" 
                 checked={termsAccepted} 
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                style={{ width: "20px", height: "20px", accentColor: neonCyan, cursor: "pointer" }}
+                style={{ width: "20px", height: "20px", accentColor: neonBlue, cursor: "pointer" }}
               />
               <span style={{ color: textPrimary, fontWeight: 600, fontSize: "14px" }}>I have read and agree to the Terms & Conditions</span>
             </label>
@@ -635,16 +630,16 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             <div style={{ marginBottom: "32px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>Draw Your Signature</label>
-                <button type="button" onClick={clearSignature} style={{ background: "transparent", border: "none", color: neonCyan, fontSize: "12px", fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}>
+                <button type="button" onClick={clearSignature} style={{ background: "transparent", border: "none", color: neonBlue, fontSize: "12px", fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}>
                   Clear
                 </button>
               </div>
-              <div style={{ borderRadius: "16px", overflow: "hidden", border: \`2px solid \${hasSigned ? neonCyan : "rgba(148, 163, 184, 0.2)"}\`, transition: "border-color 0.3s ease", boxShadow: hasSigned ? \`0 0 20px \${neonCyan}20\` : "none" }}>
+              <div style={{ borderRadius: "16px", overflow: "hidden", border: `2px solid ${hasSigned ? neonBlue : "#cbd5e1"}`, transition: "border-color 0.3s ease", boxShadow: hasSigned ? `0 4px 15px rgba(0,208,240,0.08)` : "none" }}>
                 <canvas 
                   ref={canvasRef}
                   width={900}
                   height={180}
-                  style={{ display: "block", background: "#020617", cursor: "crosshair", width: "100%", touchAction: "none" }}
+                  style={{ display: "block", background: "#f8fafc", cursor: "crosshair", width: "100%", touchAction: "none" }}
                   onMouseDown={startDraw}
                   onMouseMove={draw}
                   onMouseUp={stopDraw}
@@ -658,7 +653,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             </div>
 
             {error && (
-              <div className="fade-in" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
+              <div className="fade-in" style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "12px", padding: "16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
                 <AlertCircle size={18} /> {error}
               </div>
             )}
@@ -666,7 +661,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             <button 
               onClick={handleSubmit} 
               disabled={submitting || !termsAccepted || !hasSigned}
-              style={{ width: "100%", padding: "20px", background: (submitting || !termsAccepted || !hasSigned) ? "rgba(148, 163, 184, 0.1)" : \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: (submitting || !termsAccepted || !hasSigned) ? textSecondary : "#020617", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "18px", cursor: (submitting || !termsAccepted || !hasSigned) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", transition: "all 0.3s ease", boxShadow: (submitting || !termsAccepted || !hasSigned) ? "none" : \`0 0 30px \${neonCyan}40\` }}
+              style={{ width: "100%", padding: "20px", background: (submitting || !termsAccepted || !hasSigned) ? "#cbd5e1" : `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "18px", cursor: (submitting || !termsAccepted || !hasSigned) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", transition: "all 0.3s ease", boxShadow: (submitting || !termsAccepted || !hasSigned) ? "none" : `0 8px 25px rgba(14, 165, 233, 0.3)` }}
             >
               {submitting ? <><Loader2 size={24} className="animate-spin" /> Submitting...</> : <><CheckCircle size={24} /> Submit & Sign Agreement</>}
             </button>
