@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { Moon, Sun, Zap } from "lucide-react";
 
 export function ThemeSwitcher() {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("bright");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("crm-theme") || "dark";
+    const savedTheme = localStorage.getItem("crm-theme") || "bright";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);

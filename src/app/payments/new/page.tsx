@@ -52,7 +52,7 @@ export default function NewPaymentPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Record Payment</h2>
         <p className="text-foreground/70 mt-1">Log a new incoming transaction.</p>

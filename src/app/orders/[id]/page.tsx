@@ -78,7 +78,7 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
   if (!order) return <div className="p-8 text-red-500">Order not found.</div>;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 w-full">
       <div className="flex justify-between items-end pb-4 border-b border-border/50">
         <div>
           <div className="flex items-center gap-3 mb-1">

@@ -33,7 +33,7 @@ export default function NewCustomerPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Add New Customer</h2>
         <p className="text-foreground/70 mt-1">Create a new customer profile.</p>

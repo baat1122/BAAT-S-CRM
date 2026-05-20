@@ -84,7 +84,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 w-full">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">System Settings</h2>
         <p className="text-foreground/70 mt-1">Configure your CRM preferences and manage your organization.</p>

@@ -59,7 +59,7 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Create New Order</h2>
         <p className="text-foreground/70 mt-1">Enter shipment details for a new transport.</p>

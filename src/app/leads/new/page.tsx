@@ -94,7 +94,7 @@ export default function NewLeadPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Generate Quote</h2>
         <p className="text-foreground/70 mt-1">Create a multi-vehicle quote.</p>

@@ -191,7 +191,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
   if (!quote) return <div className="p-8 text-red-500">Quote not found.</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex justify-between items-end pb-4 border-b border-border/50">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{isEditing ? "Edit Quote" : "Quote Details"}</h2>
