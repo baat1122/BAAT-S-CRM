@@ -51,6 +51,11 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Security Gate
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authInput, setAuthInput] = useState("");
+  const [authErrorMsg, setAuthErrorMsg] = useState("");
+
   // Editable customer fields
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -200,6 +205,24 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
   const handlePrint = () => window.print();
 
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanInput = authInput.trim().toLowerCase();
+    const orderEmail = (order?.customers?.email || "").toLowerCase().trim();
+    
+    const cleanPhoneInput = authInput.replace(/\D/g,'');
+    const orderPhone = (order?.customers?.phone || "").replace(/\D/g,'');
+
+    if (
+      (orderEmail && cleanInput === orderEmail) || 
+      (orderPhone && cleanPhoneInput === orderPhone && cleanPhoneInput.length > 5)
+    ) {
+      setIsAuthenticated(true);
+    } else {
+      setAuthErrorMsg("The email or phone number does not match our records for this order.");
+    }
+  };
+
   // ── Loading ──
   if (loading) {
     return (
@@ -216,6 +239,54 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     return (
       <div style={{ minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#ef4444", fontSize: "18px" }}>Order not found. Please check your link.</div>
+      </div>
+    );
+  }
+
+  // ── Security Gate Screen ──
+  if (!isAuthenticated && !submitted) {
+    return (
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+        <div className="fade-in" style={{ width: "100%", maxWidth: "440px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "20px", padding: "40px 32px" }}>
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <Truck size={28} color="#050a18" />
+            </div>
+            <h1 style={{ color: "#f1f5f9", fontSize: "24px", fontWeight: 800, marginBottom: "8px" }}>Secure Order Access</h1>
+            <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6" }}>
+              To view and sign your order <strong style={{color:"#00f0ff"}}>{order.order_id}</strong>, please verify your identity.
+            </p>
+          </div>
+          
+          {authErrorMsg && (
+            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", color: "#ef4444", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertCircle size={16} /> {authErrorMsg}
+            </div>
+          )}
+
+          <form onSubmit={handleAuth}>
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ display: "block", color: "#94a3b8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>Email or Phone Number</label>
+              <input 
+                type="text" 
+                value={authInput}
+                onChange={(e) => setAuthInput(e.target.value)}
+                placeholder="Enter email or phone" 
+                required
+                style={{ width: "100%", padding: "14px 16px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(51,65,85,0.8)", borderRadius: "12px", color: "#f1f5f9", fontSize: "15px", outline: "none", transition: "border-color 0.2s" }}
+              />
+            </div>
+            <button 
+              type="submit"
+              style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", color: "#050a18", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "16px", cursor: "pointer", boxShadow: "0 0 20px rgba(0,240,255,0.2)" }}
+            >
+              Access My Order
+            </button>
+          </form>
+          <div style={{ textAlign: "center", color: "#475569", fontSize: "12px", marginTop: "24px" }}>
+            🔒 Protected by Neon Auto Transport
+          </div>
+        </div>
       </div>
     );
   }
@@ -329,7 +400,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", padding: "32px 16px 80px" }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
           {/* ── Header ── */}
           <div className="fade-in" style={{ textAlign: "center", marginBottom: "36px" }}>
