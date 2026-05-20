@@ -142,7 +142,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#00f0ff";
+    ctx.strokeStyle = "#0284c7";
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -226,8 +226,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Loading ──
   if (loading) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#00f0ff", display: "flex", alignItems: "center", gap: "12px", fontSize: "18px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#0284c7", display: "flex", alignItems: "center", gap: "12px", fontSize: "18px" }}>
           <Loader2 className="animate-spin" size={24} />
           Loading your order details…
         </div>
@@ -237,7 +237,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
   if (!order) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#050a18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#ef4444", fontSize: "18px" }}>Order not found. Please check your link.</div>
       </div>
     );
@@ -246,15 +246,15 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Security Gate Screen ──
   if (!isAuthenticated && !submitted) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-        <div className="fade-in" style={{ width: "100%", maxWidth: "440px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "20px", padding: "40px 32px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+        <div className="fade-in" style={{ width: "100%", maxWidth: "440px", background: "#ffffff", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "20px", padding: "40px 32px" }}>
           <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-              <Truck size={28} color="#050a18" />
+            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <Truck size={28} color="#f8fafc" />
             </div>
-            <h1 style={{ color: "#f1f5f9", fontSize: "24px", fontWeight: 800, marginBottom: "8px" }}>Secure Order Access</h1>
+            <h1 style={{ color: "#0f172a", fontSize: "24px", fontWeight: 800, marginBottom: "8px" }}>Secure Order Access</h1>
             <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6" }}>
-              To view and sign your order <strong style={{color:"#00f0ff"}}>{order.order_id}</strong>, please verify your identity.
+              To view and sign your order <strong style={{color:"#0284c7"}}>{order.order_id}</strong>, please verify your identity.
             </p>
           </div>
           
@@ -273,17 +273,17 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 onChange={(e) => setAuthInput(e.target.value)}
                 placeholder="Enter email or phone" 
                 required
-                style={{ width: "100%", padding: "14px 16px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(51,65,85,0.8)", borderRadius: "12px", color: "#f1f5f9", fontSize: "15px", outline: "none", transition: "border-color 0.2s" }}
+                style={{ width: "100%", padding: "14px 16px", background: "#f8fafc", border: "1px solid #94a3b8", borderRadius: "12px", color: "#0f172a", fontSize: "15px", outline: "none", transition: "border-color 0.2s" }}
               />
             </div>
             <button 
               type="submit"
-              style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", color: "#050a18", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "16px", cursor: "pointer", boxShadow: "0 0 20px rgba(0,240,255,0.2)" }}
+              style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "16px", cursor: "pointer", boxShadow: "0 0 20px rgba(0,240,255,0.2)" }}
             >
               Access My Order
             </button>
           </form>
-          <div style={{ textAlign: "center", color: "#475569", fontSize: "12px", marginTop: "24px" }}>
+          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "12px", marginTop: "24px" }}>
             🔒 Protected by Neon Auto Transport
           </div>
         </div>
@@ -302,16 +302,16 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             .print-area { padding: 20px; }
           }
         `}</style>
-        <div className="print-area" style={{ width: "100%", minHeight: "100vh", background: "#050a18", padding: "32px 16px" }}>
+        <div className="print-area" style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", padding: "32px 16px" }}>
           <div style={{ maxWidth: "720px", margin: "0 auto" }}>
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: "40px" }}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Truck size={24} color="#050a18" />
+                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Truck size={24} color="#f8fafc" />
                 </div>
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ color: "#00f0ff", fontWeight: 800, fontSize: "20px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
+                  <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "20px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
                   <div style={{ color: "#64748b", fontSize: "12px" }}>Licensed & Insured Auto Carrier</div>
                 </div>
               </div>
@@ -320,30 +320,30 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             <div style={{ background: "linear-gradient(135deg, rgba(0,240,255,0.1), rgba(14,165,233,0.05))", border: "1px solid rgba(0,240,255,0.3)", borderRadius: "24px", padding: "40px", textAlign: "center", marginBottom: "32px" }}>
               <CheckCircle size={64} color="#22c55e" style={{ margin: "0 auto 16px" }} />
               <h1 style={{ color: "#22c55e", fontSize: "28px", fontWeight: 800, marginBottom: "8px" }}>Order Signed & Confirmed!</h1>
-              <p style={{ color: "#94a3b8", fontSize: "16px", marginBottom: "4px" }}>Thank you, <strong style={{ color: "#f1f5f9" }}>{customerName}</strong></p>
-              <p style={{ color: "#64748b", fontSize: "14px" }}>Your transport agreement for <strong style={{ color: "#00f0ff" }}>{order.order_id}</strong> has been submitted.</p>
+              <p style={{ color: "#94a3b8", fontSize: "16px", marginBottom: "4px" }}>Thank you, <strong style={{ color: "#0f172a" }}>{customerName}</strong></p>
+              <p style={{ color: "#64748b", fontSize: "14px" }}>Your transport agreement for <strong style={{ color: "#0284c7" }}>{order.order_id}</strong> has been submitted.</p>
             </div>
 
             {/* Order Summary */}
-            <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(51,65,85,0.5)", borderRadius: "16px", padding: "24px", marginBottom: "24px" }}>
-              <h2 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "16px", marginBottom: "20px", paddingBottom: "12px", borderBottom: "1px solid rgba(51,65,85,0.5)" }}>Order Summary</h2>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "24px", marginBottom: "24px" }}>
+              <h2 style={{ color: "#0f172a", fontWeight: 700, fontSize: "16px", marginBottom: "20px", paddingBottom: "12px", borderBottom: "1px solid #e2e8f0" }}>Order Summary</h2>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Order ID</div><div style={{ color: "#00f0ff", fontWeight: 700 }}>{order.order_id}</div></div>
+                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Order ID</div><div style={{ color: "#0284c7", fontWeight: 700 }}>{order.order_id}</div></div>
                 <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Status</div><div style={{ color: "#22c55e", fontWeight: 700 }}>✓ Signed</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Origin</div><div style={{ color: "#f1f5f9", fontWeight: 600 }}>{pickupFullAddress}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Destination</div><div style={{ color: "#f1f5f9", fontWeight: 600 }}>{dropoffFullAddress}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Agreed Rate</div><div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "18px" }}>${order.customer_price || 0}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Date Signed</div><div style={{ color: "#f1f5f9" }}>{new Date().toLocaleDateString()}</div></div>
+                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Origin</div><div style={{ color: "#0f172a", fontWeight: 600 }}>{pickupFullAddress}</div></div>
+                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Destination</div><div style={{ color: "#0f172a", fontWeight: 600 }}>{dropoffFullAddress}</div></div>
+                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Agreed Rate</div><div style={{ color: "#0f172a", fontWeight: 700, fontSize: "18px" }}>${order.customer_price || 0}</div></div>
+                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Date Signed</div><div style={{ color: "#0f172a" }}>{new Date().toLocaleDateString()}</div></div>
               </div>
             </div>
 
             <div className="no-print" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-              <button onClick={handlePrint} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 32px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", color: "#050a18", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer" }}>
+              <button onClick={handlePrint} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 32px", background: "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer" }}>
                 <Download size={18} /> Download PDF
               </button>
             </div>
 
-            <p style={{ textAlign: "center", color: "#475569", fontSize: "12px", marginTop: "32px" }}>
+            <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "12px", marginTop: "32px" }}>
               Questions? Call us at (571) 576-7711 · neonautotransport.com
             </p>
           </div>
@@ -356,10 +356,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   const inputStyle = {
     width: "100%",
     padding: "12px 16px",
-    background: "rgba(15,23,42,0.8)",
-    border: "1px solid rgba(51,65,85,0.6)",
+    background: "#ffffff",
+    border: "1px solid #cbd5e1",
     borderRadius: "10px",
-    color: "#f1f5f9",
+    color: "#0f172a",
     fontSize: "14px",
     outline: "none",
     boxSizing: "border-box" as const,
@@ -369,8 +369,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   const labelStyle = { display: "block", color: "#94a3b8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.8px", marginBottom: "6px" };
 
   const sectionStyle = {
-    background: "rgba(15,23,42,0.6)",
-    border: "1px solid rgba(51,65,85,0.4)",
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
     borderRadius: "16px",
     padding: "24px",
     marginBottom: "20px",
@@ -382,7 +382,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     gap: "10px",
     marginBottom: "20px",
     paddingBottom: "14px",
-    borderBottom: "1px solid rgba(51,65,85,0.4)",
+    borderBottom: "1px solid #e2e8f0",
   };
 
   return (
@@ -390,7 +390,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        input:focus, textarea:focus { border-color: #00f0ff !important; box-shadow: 0 0 0 3px rgba(0,240,255,0.1); }
+        input:focus, textarea:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(0,240,255,0.1); }
         @media print {
           body { background: white !important; }
           .no-print { display: none !important; }
@@ -399,26 +399,26 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
         .fade-in { animation: fadeIn 0.5s ease both; }
       `}</style>
 
-      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #050a18 0%, #0a1628 50%, #050a18 100%)", padding: "32px 16px 80px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)", padding: "32px 16px 80px" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
           {/* ── Header ── */}
           <div className="fade-in" style={{ textAlign: "center", marginBottom: "36px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "14px", marginBottom: "20px", padding: "14px 24px", background: "rgba(0,240,255,0.05)", border: "1px solid rgba(0,240,255,0.15)", borderRadius: "16px" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "linear-gradient(135deg,#00f0ff,#0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Truck size={22} color="#050a18" />
+              <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Truck size={22} color="#f8fafc" />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ color: "#00f0ff", fontWeight: 800, fontSize: "18px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
-                <div style={{ color: "#475569", fontSize: "12px" }}>Licensed & Insured · (571) 576-7711</div>
+                <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "18px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
+                <div style={{ color: "#94a3b8", fontSize: "12px" }}>Licensed & Insured · (571) 576-7711</div>
               </div>
             </div>
-            <h1 style={{ color: "#f1f5f9", fontSize: "26px", fontWeight: 800, marginBottom: "8px" }}>
+            <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 800, marginBottom: "8px" }}>
               Order Confirmation Form
             </h1>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(0,240,255,0.08)", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "999px" }}>
-              <span style={{ color: "#00f0ff", fontWeight: 700, fontSize: "14px" }}>{order.order_id}</span>
-              <span style={{ color: "#475569", fontSize: "14px" }}>· Please review and sign below</span>
+              <span style={{ color: "#0284c7", fontWeight: 700, fontSize: "14px" }}>{order.order_id}</span>
+              <span style={{ color: "#94a3b8", fontSize: "14px" }}>· Please review and sign below</span>
             </div>
           </div>
 
@@ -426,10 +426,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           <div className="fade-in" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
               <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <User size={18} color="#00f0ff" />
+                <User size={18} color="#0284c7" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Your Information</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Your Information</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Review and update if needed</div>
               </div>
             </div>
@@ -454,10 +454,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             <div className="fade-in" style={sectionStyle}>
               <div style={sectionHeaderStyle}>
                 <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Car size={18} color="#00f0ff" />
+                  <Car size={18} color="#0284c7" />
                 </div>
                 <div>
-                  <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Vehicle Details</div>
+                  <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Vehicle Details</div>
                   <div style={{ color: "#64748b", fontSize: "12px" }}>Add VIN if not already provided</div>
                 </div>
               </div>
@@ -466,17 +466,17 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                   <div key={v.id} style={{ background: "rgba(0,240,255,0.04)", border: "1px solid rgba(0,240,255,0.1)", borderRadius: "12px", padding: "16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                       <div>
-                        <div style={{ color: "#f1f5f9", fontWeight: 700 }}>{v.year} {v.make} {v.model}</div>
+                        <div style={{ color: "#0f172a", fontWeight: 700 }}>{v.year} {v.make} {v.model}</div>
                         <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
                           <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, background: v.operable ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: v.operable ? "#22c55e" : "#ef4444" }}>
                             {v.operable ? "Operable" : "Inoperable"}
                           </span>
-                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>
+                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, background: "#e2e8f0", color: "#94a3b8" }}>
                             {v.trailer_type}
                           </span>
                         </div>
                       </div>
-                      <div style={{ color: "#475569", fontSize: "12px" }}>#{i + 1}</div>
+                      <div style={{ color: "#94a3b8", fontSize: "12px" }}>#{i + 1}</div>
                     </div>
                     <div>
                       <label style={labelStyle}>VIN Number</label>
@@ -498,10 +498,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           <div className="fade-in" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
               <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MapPin size={18} color="#00f0ff" />
+                <MapPin size={18} color="#0284c7" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Pickup Details</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Pickup Details</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Where should the driver pick up the vehicle?</div>
               </div>
             </div>
@@ -525,10 +525,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
           <div className="fade-in" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
               <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(14,165,233,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MapPin size={18} color="#0ea5e9" />
+                <MapPin size={18} color="#0369a1" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Delivery Details</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Delivery Details</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Where should the vehicle be delivered?</div>
               </div>
             </div>
@@ -555,23 +555,23 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 <DollarSign size={18} color="#22c55e" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Shipment Summary</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Shipment Summary</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Your agreed pricing & dates</div>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "14px" }}>
+              <div style={{ background: "#0f172a", borderRadius: "10px", padding: "14px" }}>
                 <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Est. Pickup</div>
-                <div style={{ color: "#f1f5f9", fontWeight: 600 }}>{order.est_pickup_date || "TBD"}</div>
+                <div style={{ color: "#0f172a", fontWeight: 600 }}>{order.est_pickup_date || "TBD"}</div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "14px" }}>
+              <div style={{ background: "#0f172a", borderRadius: "10px", padding: "14px" }}>
                 <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Est. Delivery</div>
-                <div style={{ color: "#f1f5f9", fontWeight: 600 }}>{order.est_delivery_date || "TBD"}</div>
+                <div style={{ color: "#0f172a", fontWeight: 600 }}>{order.est_delivery_date || "TBD"}</div>
               </div>
               <div style={{ background: "rgba(0,240,255,0.05)", border: "1px solid rgba(0,240,255,0.15)", borderRadius: "10px", padding: "14px", gridColumn: "1 / -1" }}>
                 <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Total Agreed Rate</div>
-                <div style={{ color: "#00f0ff", fontWeight: 800, fontSize: "28px" }}>${order.customer_price || 0}</div>
-                <div style={{ color: "#475569", fontSize: "12px", marginTop: "2px" }}>Due upon delivery</div>
+                <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "28px" }}>${order.customer_price || 0}</div>
+                <div style={{ color: "#94a3b8", fontSize: "12px", marginTop: "2px" }}>Due upon delivery</div>
               </div>
             </div>
           </div>
@@ -583,11 +583,11 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 <AlertCircle size={18} color="#f59e0b" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Terms & Conditions</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Terms & Conditions</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Please read carefully before signing</div>
               </div>
             </div>
-            <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(51,65,85,0.5)", borderRadius: "10px", padding: "16px", height: "200px", overflowY: "auto", marginBottom: "16px" }}>
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px", height: "200px", overflowY: "auto", marginBottom: "16px" }}>
               <pre style={{ color: "#94a3b8", fontSize: "12px", lineHeight: "1.8", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{TERMS}</pre>
             </div>
             <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}>
@@ -595,9 +595,9 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={e => setTermsAccepted(e.target.checked)}
-                style={{ width: "18px", height: "18px", accentColor: "#00f0ff", cursor: "pointer" }}
+                style={{ width: "18px", height: "18px", accentColor: "#0284c7", cursor: "pointer" }}
               />
-              <span style={{ color: "#f1f5f9", fontSize: "14px" }}>
+              <span style={{ color: "#0f172a", fontSize: "14px" }}>
                 I have read and agree to the Terms & Conditions above. I authorize Neon Auto Transport to arrange the shipment of my vehicle(s).
               </span>
             </label>
@@ -610,16 +610,16 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 <PenLine size={18} color="#8b5cf6" />
               </div>
               <div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: "15px" }}>Digital Signature</div>
+                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Digital Signature</div>
                 <div style={{ color: "#64748b", fontSize: "12px" }}>Draw your signature in the box below</div>
               </div>
             </div>
-            <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", border: `2px dashed ${hasSigned ? "rgba(0,240,255,0.4)" : "rgba(51,65,85,0.6)"}`, transition: "border-color 0.3s" }}>
+            <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", border: `2px dashed ${hasSigned ? "rgba(0,240,255,0.4)" : "#cbd5e1"}`, transition: "border-color 0.3s" }}>
               <canvas
                 ref={canvasRef}
                 width={720}
                 height={160}
-                style={{ display: "block", background: "rgba(0,0,0,0.3)", cursor: "crosshair", width: "100%", touchAction: "none" }}
+                style={{ display: "block", background: "#ffffff", cursor: "crosshair", width: "100%", touchAction: "none" }}
                 onMouseDown={startDraw}
                 onMouseMove={draw}
                 onMouseUp={stopDraw}
@@ -630,7 +630,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               />
               {!hasSigned && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <div style={{ textAlign: "center", color: "#475569" }}>
+                  <div style={{ textAlign: "center", color: "#94a3b8" }}>
                     <PenLine size={28} style={{ margin: "0 auto 8px", opacity: 0.4 }} />
                     <div style={{ fontSize: "14px" }}>Sign here with your mouse or finger</div>
                   </div>
@@ -638,7 +638,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               )}
             </div>
             {hasSigned && (
-              <button onClick={clearSignature} style={{ marginTop: "10px", padding: "6px 14px", background: "transparent", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>
+              <button onClick={clearSignature} style={{ marginTop: "10px", padding: "6px 14px", background: "#f1f5f9", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>
                 Clear Signature
               </button>
             )}
@@ -659,8 +659,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
               disabled={submitting}
               style={{
                 padding: "16px 48px",
-                background: submitting ? "#1e293b" : "linear-gradient(135deg, #00f0ff, #0ea5e9)",
-                color: submitting ? "#94a3b8" : "#050a18",
+                background: submitting ? "#1e293b" : "linear-gradient(135deg, #0284c7, #0369a1)",
+                color: submitting ? "#94a3b8" : "#f8fafc",
                 border: "none",
                 borderRadius: "14px",
                 fontWeight: 800,
@@ -680,13 +680,13 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
                 <><CheckCircle size={20} /> Submit & Sign Order</>
               )}
             </button>
-            <div style={{ color: "#475569", fontSize: "12px", marginTop: "12px" }}>
+            <div style={{ color: "#94a3b8", fontSize: "12px", marginTop: "12px" }}>
               🔒 Your information is secure and encrypted
             </div>
           </div>
 
           <div style={{ textAlign: "center", color: "#334155", fontSize: "12px", marginTop: "40px" }}>
-            Questions? Call us at <span style={{ color: "#00f0ff" }}>(571) 576-7711</span> · neonautotransport.com
+            Questions? Call us at <span style={{ color: "#0284c7" }}>(571) 576-7711</span> · neonautotransport.com
           </div>
         </div>
       </div>
