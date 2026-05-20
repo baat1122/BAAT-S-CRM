@@ -18,6 +18,8 @@ import {
   Calendar,
   DollarSign,
   Car,
+  ShieldCheck,
+  ChevronLeft
 } from "lucide-react";
 
 const TERMS = `NEON AUTO TRANSPORT — VEHICLE TRANSPORT AGREEMENT
@@ -83,7 +85,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     async function fetchData() {
       const { data: orderData } = await supabase
         .from("orders")
-        .select(`*, customers (customer_name, phone, email)`)
+        .select(\`*, customers (customer_name, phone, email)\`)
         .eq("id", id)
         .single() as { data: any };
 
@@ -146,8 +148,10 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#0284c7";
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#00f0ff"; // Neon Cyan Signature!
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#00f0ff";
+    ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.stroke();
@@ -211,7 +215,11 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     if (!pdfRef.current) return;
     setIsGeneratingPdf(true);
     try {
+      // Temporarily show the hidden div to capture it, but keep it out of viewport
+      pdfRef.current.style.display = 'block';
       const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
+      pdfRef.current.style.display = 'none';
+
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       
@@ -219,7 +227,7 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Order_Agreement_${order.order_id}.pdf`);
+      pdf.save(\`Order_Agreement_\${order.order_id}.pdf\`);
     } catch (err) {
       console.error("PDF generation error:", err);
       alert("Error generating PDF. Please try again.");
@@ -233,8 +241,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     const cleanInput = authInput.trim().toLowerCase();
     const orderEmail = (order?.customers?.email || "").toLowerCase().trim();
     
-    const cleanPhoneInput = authInput.replace(/\D/g,'');
-    const orderPhone = (order?.customers?.phone || "").replace(/\D/g,'');
+    const cleanPhoneInput = authInput.replace(/\\D/g,'');
+    const orderPhone = (order?.customers?.phone || "").replace(/\\D/g,'');
 
     if (
       (orderEmail && cleanInput === orderEmail) || 
@@ -246,13 +254,23 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     }
   };
 
+  // ── UI Theme Globals ──
+  const themeBg = "linear-gradient(145deg, #020617 0%, #0a1024 100%)";
+  const panelBg = "rgba(15, 23, 42, 0.6)";
+  const glassBorder = "1px solid rgba(0, 240, 255, 0.15)";
+  const glassShadow = "0 8px 32px 0 rgba(0, 240, 255, 0.05)";
+  const neonCyan = "#00f0ff";
+  const neonBlue = "#0ea5e9";
+  const textPrimary = "#f8fafc";
+  const textSecondary = "#94a3b8";
+
   // ── Loading ──
   if (loading) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#0284c7", display: "flex", alignItems: "center", gap: "12px", fontSize: "18px" }}>
-          <Loader2 className="animate-spin" size={24} />
-          Loading your order details…
+      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: neonCyan, display: "flex", alignItems: "center", gap: "12px", fontSize: "18px", textShadow: \`0 0 10px \${neonCyan}\` }}>
+          <Loader2 className="animate-spin" size={28} />
+          Loading Secure Portal…
         </div>
       </div>
     );
@@ -260,8 +278,8 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
   if (!order) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#ef4444", fontSize: "18px" }}>Order not found. Please check your link.</div>
+      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#ef4444", fontSize: "18px", textShadow: "0 0 10px rgba(239,68,68,0.5)" }}>Order not found. Please check your link.</div>
       </div>
     );
   }
@@ -269,47 +287,55 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Security Gate Screen ──
   if (!isAuthenticated && !submitted) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-        <div className="fade-in" style={{ width: "100%", maxWidth: "440px", background: "#ffffff", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "20px", padding: "40px 32px" }}>
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-              <Truck size={28} color="#f8fafc" />
+      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+        <div className="fade-in glass-panel" style={{ width: "100%", maxWidth: "440px", background: panelBg, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: glassBorder, borderRadius: "24px", padding: "48px 32px", boxShadow: glassShadow }}>
+          <div style={{ textAlign: "center", marginBottom: "36px" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: \`0 0 30px \${neonBlue}40\` }}>
+              <ShieldCheck size={32} color="#020617" />
             </div>
-            <h1 style={{ color: "#0f172a", fontSize: "24px", fontWeight: 800, marginBottom: "8px" }}>Secure Order Access</h1>
-            <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6" }}>
-              To view and sign your order <strong style={{color:"#0284c7"}}>{order.order_id}</strong>, please verify your identity.
+            <h1 style={{ color: textPrimary, fontSize: "28px", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.5px" }}>Secure Access</h1>
+            <p style={{ color: textSecondary, fontSize: "15px", lineHeight: "1.6" }}>
+              Verify your identity to view order <strong style={{color: neonCyan}}>{order.order_id}</strong>
             </p>
           </div>
           
           {authErrorMsg && (
-            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", color: "#ef4444", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <AlertCircle size={16} /> {authErrorMsg}
+            <div className="fade-in" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <AlertCircle size={18} /> {authErrorMsg}
             </div>
           )}
 
           <form onSubmit={handleAuth}>
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>Email or Phone Number</label>
+            <div style={{ marginBottom: "28px" }}>
+              <label style={{ display: "block", color: textSecondary, fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>Email or Phone Number</label>
               <input 
                 type="text" 
                 value={authInput}
                 onChange={(e) => setAuthInput(e.target.value)}
                 placeholder="Enter email or phone" 
                 required
-                style={{ width: "100%", padding: "14px 16px", background: "#f8fafc", border: "1px solid #94a3b8", borderRadius: "12px", color: "#0f172a", fontSize: "15px", outline: "none", transition: "border-color 0.2s" }}
+                className="neon-input"
+                style={{ width: "100%", padding: "16px", background: "rgba(2, 6, 23, 0.7)", border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: "14px", color: textPrimary, fontSize: "16px", outline: "none", transition: "all 0.3s ease" }}
               />
             </div>
             <button 
               type="submit"
-              style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "16px", cursor: "pointer", boxShadow: "0 0 20px rgba(0,240,255,0.2)" }}
+              className="neon-btn hover-glow"
+              style={{ width: "100%", padding: "18px", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: "#020617", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "16px", cursor: "pointer", transition: "all 0.3s ease", boxShadow: \`0 0 20px \${neonCyan}40\` }}
             >
               Access My Order
             </button>
           </form>
-          <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "12px", marginTop: "24px" }}>
-            🔒 Protected by Neon Auto Transport
+          <div style={{ textAlign: "center", color: textSecondary, fontSize: "13px", marginTop: "32px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+            <span style={{width:"8px", height:"8px", borderRadius:"50%", background:neonCyan, boxShadow:\`0 0 8px \${neonCyan}\`}}></span> Protected by Neon Auto Transport
           </div>
         </div>
+        <style>{`
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+          .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+          .neon-input:focus { border-color: ${neonCyan} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px ${neonCyan}10 !important; }
+          .hover-glow:hover { transform: translateY(-2px); box-shadow: 0 10px 25px ${neonCyan}60 !important; }
+        `}</style>
       </div>
     );
   }
@@ -317,156 +343,178 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
   // ── Success Screen ──
   if (submitted) {
     return (
-      <>
+      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <style>{`
-          @media print {
-            body { background: white !important; color: black !important; }
-            .no-print { display: none !important; }
-            .print-area { padding: 20px; }
-          }
+          @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+          .slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+          .hover-scale:hover { transform: scale(1.02); }
         `}</style>
-        <div className="print-area" ref={pdfRef} style={{ width: "100%", minHeight: "100vh", background: "#f8fafc", padding: "32px 16px" }}>
-          <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-            {/* Header */}
-            <div style={{ textAlign: "center", marginBottom: "40px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Truck size={24} color="#f8fafc" />
-                </div>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "20px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
-                  <div style={{ color: "#64748b", fontSize: "12px" }}>Licensed & Insured Auto Carrier</div>
-                </div>
-              </div>
-            </div>
 
-            <div style={{ background: "linear-gradient(135deg, rgba(0,240,255,0.1), rgba(14,165,233,0.05))", border: "1px solid rgba(0,240,255,0.3)", borderRadius: "24px", padding: "40px", textAlign: "center", marginBottom: "32px" }}>
-              <CheckCircle size={64} color="#22c55e" style={{ margin: "0 auto 16px" }} />
-              <h1 style={{ color: "#22c55e", fontSize: "28px", fontWeight: 800, marginBottom: "8px" }}>Order Signed & Confirmed!</h1>
-              <p style={{ color: "#94a3b8", fontSize: "16px", marginBottom: "4px" }}>Thank you, <strong style={{ color: "#0f172a" }}>{customerName}</strong></p>
-              <p style={{ color: "#64748b", fontSize: "14px" }}>Your transport agreement for <strong style={{ color: "#0284c7" }}>{order.order_id}</strong> has been submitted.</p>
+        {/* HIDDEN PDF TEMPLATE (Strictly White/Black for proper printing) */}
+        <div ref={pdfRef} style={{ display: 'none', position: 'absolute', top: '-9999px', left: 0, width: '800px', background: 'white', color: 'black', padding: '40px', fontFamily: 'sans-serif' }}>
+          <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: "20px", marginBottom: "20px" }}>
+            <h1 style={{ fontSize: "24px", margin: "0 0 10px 0" }}>NEON AUTO TRANSPORT</h1>
+            <p style={{ margin: 0, color: "#444" }}>Licensed & Insured Auto Carrier · (571) 576-7711</p>
+          </div>
+          <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "30px" }}>VEHICLE TRANSPORT AGREEMENT - ORDER #{order.order_id}</h2>
+          
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px" }}>
+            <div style={{ width: "48%" }}>
+              <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Customer Details</h3>
+              <p style={{ margin: "5px 0" }}><strong>Name:</strong> {customerName}</p>
+              <p style={{ margin: "5px 0" }}><strong>Phone:</strong> {customerPhone}</p>
+              <p style={{ margin: "5px 0" }}><strong>Email:</strong> {customerEmail}</p>
+              <p style={{ margin: "5px 0" }}><strong>Price:</strong> \${order.customer_price || 0}</p>
             </div>
-
-            {/* Order Summary */}
-            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "24px", marginBottom: "24px" }}>
-              <h2 style={{ color: "#0f172a", fontWeight: 700, fontSize: "16px", marginBottom: "20px", paddingBottom: "12px", borderBottom: "1px solid #e2e8f0" }}>Order Summary</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Order ID</div><div style={{ color: "#0284c7", fontWeight: 700 }}>{order.order_id}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Status</div><div style={{ color: "#22c55e", fontWeight: 700 }}>✓ Signed</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Origin</div><div style={{ color: "#0f172a", fontWeight: 600 }}>{pickupFullAddress}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Destination</div><div style={{ color: "#0f172a", fontWeight: 600 }}>{dropoffFullAddress}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Agreed Rate</div><div style={{ color: "#0f172a", fontWeight: 700, fontSize: "18px" }}>${order.customer_price || 0}</div></div>
-                <div><div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Date Signed</div><div style={{ color: "#0f172a" }}>{new Date().toLocaleDateString()}</div></div>
-              </div>
+            <div style={{ width: "48%" }}>
+              <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Route</h3>
+              <p style={{ margin: "5px 0" }}><strong>Pickup:</strong> {pickupFullAddress}</p>
+              <p style={{ margin: "5px 0" }}><strong>Dropoff:</strong> {dropoffFullAddress}</p>
             </div>
+          </div>
 
-            <div className="no-print" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-              <button 
-                onClick={() => setSubmitted(false)} 
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 24px", background: "#f1f5f9", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer" }}
-              >
-                Edit Submission
-              </button>
-              <button 
-                onClick={handlePrint} 
-                disabled={isGeneratingPdf}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 32px", background: isGeneratingPdf ? "#94a3b8" : "linear-gradient(135deg,#0284c7,#0369a1)", color: "#f8fafc", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
-              >
-                {isGeneratingPdf ? <><Loader2 size={18} className="animate-spin" /> Generating...</> : <><Download size={18} /> Download PDF</>}
-              </button>
-            </div>
+          <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Vehicles</h3>
+          <ul style={{ marginBottom: "30px" }}>
+            {vehicles.map((v, i) => (
+              <li key={i} style={{ margin: "5px 0" }}>{v.year} {v.make} {v.model} {v.is_operable ? "(Operable)" : "(Inoperable)"} - VIN: {v.vin || "Not Provided"}</li>
+            ))}
+          </ul>
 
-            <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "12px", marginTop: "32px" }}>
-              Questions? Call us at (571) 576-7711 · neonautotransport.com
-            </p>
+          <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Terms & Conditions</h3>
+          <p style={{ fontSize: "10px", lineHeight: "1.4", color: "#333", whiteSpace: "pre-wrap", marginBottom: "40px" }}>{TERMS}</p>
+
+          <div style={{ borderTop: "2px solid #000", paddingTop: "20px" }}>
+            <p style={{ marginBottom: "20px" }}><strong>Electronic Signature:</strong> I have read and agree to the Terms & Conditions.</p>
+            <img src={order.customer_signature || ""} style={{ maxWidth: "300px", borderBottom: "1px solid #000" }} />
+            <p style={{ marginTop: "10px" }}>Signed by: {customerName}</p>
+            <p style={{ margin: "5px 0" }}>Date: {new Date(order.signed_at || new Date()).toLocaleString()}</p>
           </div>
         </div>
-      </>
+        {/* END HIDDEN PDF TEMPLATE */}
+
+        <div className="slide-up" style={{ maxWidth: "600px", width: "100%" }}>
+          <div style={{ background: panelBg, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: glassBorder, borderRadius: "24px", padding: "48px 32px", textAlign: "center", boxShadow: glassShadow, marginBottom: "24px" }}>
+            <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: \`rgba(34, 197, 94, 0.1)\`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: \`0 0 30px rgba(34, 197, 94, 0.2)\` }}>
+              <CheckCircle size={48} color="#22c55e" />
+            </div>
+            <h1 style={{ color: "#22c55e", fontSize: "32px", fontWeight: 800, marginBottom: "12px", textShadow: "0 0 15px rgba(34, 197, 94, 0.3)" }}>Order Confirmed!</h1>
+            <p style={{ color: textSecondary, fontSize: "16px", marginBottom: "32px", lineHeight: "1.6" }}>
+              Thank you, <strong style={{ color: textPrimary }}>{customerName}</strong>.<br/>
+              Your transport agreement for <strong style={{ color: neonCyan }}>{order.order_id}</strong> is secure.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", textAlign: "left", background: "rgba(2, 6, 23, 0.5)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Route</div><div style={{ color: textPrimary, fontSize: "14px" }}>{pickupFullAddress.split(',')[0]} → {dropoffFullAddress.split(',')[0]}</div></div>
+              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Agreed Rate</div><div style={{ color: neonCyan, fontWeight: 800, fontSize: "18px" }}>\${order.customer_price || 0}</div></div>
+            </div>
+          </div>
+
+          <div className="slide-up" style={{ display: "flex", flexDirection: "column", gap: "16px", animationDelay: "0.2s" }}>
+            <button 
+              onClick={handlePrint} 
+              disabled={isGeneratingPdf}
+              className="hover-scale"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "20px", background: isGeneratingPdf ? "rgba(148, 163, 184, 0.2)" : \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: isGeneratingPdf ? textSecondary : "#020617", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "16px", cursor: isGeneratingPdf ? "not-allowed" : "pointer", transition: "all 0.3s ease", boxShadow: isGeneratingPdf ? "none" : \`0 0 25px \${neonCyan}50\` }}
+            >
+              {isGeneratingPdf ? <><Loader2 size={20} className="animate-spin" /> Generating PDF...</> : <><Download size={20} /> Download Official Agreement</>}
+            </button>
+            <button 
+              onClick={() => setSubmitted(false)} 
+              className="hover-scale"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "18px", background: "transparent", color: textSecondary, border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: "16px", fontWeight: 700, fontSize: "15px", cursor: "pointer", transition: "all 0.3s ease" }}
+            >
+              <ChevronLeft size={18} /> Edit Submission
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   // ── Main Form ──
   const inputStyle = {
     width: "100%",
-    padding: "12px 16px",
-    background: "#ffffff",
-    border: "1px solid #cbd5e1",
-    borderRadius: "10px",
-    color: "#0f172a",
-    fontSize: "14px",
+    padding: "16px",
+    background: "rgba(2, 6, 23, 0.6)",
+    border: "1px solid rgba(148, 163, 184, 0.15)",
+    borderRadius: "14px",
+    color: textPrimary,
+    fontSize: "15px",
     outline: "none",
     boxSizing: "border-box" as const,
-    transition: "border-color 0.2s",
+    transition: "all 0.3s ease",
   };
 
-  const labelStyle = { display: "block", color: "#94a3b8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.8px", marginBottom: "6px" };
+  const labelStyle = { display: "block", color: textSecondary, fontSize: "12px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "8px" };
 
   const sectionStyle = {
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: "16px",
-    padding: "24px",
-    marginBottom: "20px",
+    background: panelBg,
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: glassBorder,
+    borderRadius: "24px",
+    padding: "32px",
+    marginBottom: "24px",
+    boxShadow: glassShadow,
   };
 
   const sectionHeaderStyle = {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    marginBottom: "20px",
-    paddingBottom: "14px",
-    borderBottom: "1px solid #e2e8f0",
+    gap: "14px",
+    marginBottom: "28px",
+    paddingBottom: "16px",
+    borderBottom: "1px solid rgba(148, 163, 184, 0.1)",
   };
 
   return (
     <>
-      <style>{`
+      <style>{\`
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        input:focus, textarea:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(0,240,255,0.1); }
-        @media print {
-          body { background: white !important; }
-          .no-print { display: none !important; }
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.5s ease both; }
-      `}</style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        input:focus, textarea:focus { border-color: \${neonCyan} !important; box-shadow: 0 0 0 4px \${neonCyan}20, inset 0 0 10px \${neonCyan}10 !important; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: \${neonBlue}; border-radius: 10px; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+      \`}</style>
 
-      <div style={{ width: "100%", minHeight: "100vh", background: "linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)", padding: "32px 16px 80px" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, padding: "40px 20px 100px", overflowX: "hidden" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
           {/* ── Header ── */}
-          <div className="fade-in" style={{ textAlign: "center", marginBottom: "36px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "14px", marginBottom: "20px", padding: "14px 24px", background: "rgba(0,240,255,0.05)", border: "1px solid rgba(0,240,255,0.15)", borderRadius: "16px" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "linear-gradient(135deg,#0284c7,#0369a1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Truck size={22} color="#f8fafc" />
+          <div className="fade-up" style={{ textAlign: "center", marginBottom: "48px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "12px 24px", background: "rgba(0, 240, 255, 0.05)", border: "1px solid rgba(0, 240, 255, 0.2)", borderRadius: "100px", boxShadow: \`0 0 20px \${neonCyan}10\` }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Truck size={18} color="#020617" />
               </div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "18px", letterSpacing: "2px" }}>NEON AUTO TRANSPORT</div>
-                <div style={{ color: "#94a3b8", fontSize: "12px" }}>Licensed & Insured · (571) 576-7711</div>
-              </div>
+              <div style={{ color: neonCyan, fontWeight: 800, fontSize: "16px", letterSpacing: "3px" }}>NEON AUTO TRANSPORT</div>
             </div>
-            <h1 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 800, marginBottom: "8px" }}>
-              Order Confirmation Form
+            <h1 style={{ color: textPrimary, fontSize: "40px", fontWeight: 900, marginBottom: "16px", letterSpacing: "-1px", textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+              Order Confirmation
             </h1>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", background: "rgba(0,240,255,0.08)", border: "1px solid rgba(0,240,255,0.2)", borderRadius: "999px" }}>
-              <span style={{ color: "#0284c7", fontWeight: 700, fontSize: "14px" }}>{order.order_id}</span>
-              <span style={{ color: "#94a3b8", fontSize: "14px" }}>· Please review and sign below</span>
+            <div style={{ color: textSecondary, fontSize: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              Order <span style={{ color: neonCyan, fontWeight: 700, padding: "4px 10px", background: "rgba(0,240,255,0.1)", borderRadius: "6px" }}>#{order.order_id}</span>
             </div>
           </div>
 
           {/* ── Customer Info ── */}
-          <div className="fade-in" style={sectionStyle}>
+          <div className="fade-up delay-1" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <User size={18} color="#0284c7" />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
+                <User size={20} color={neonCyan} />
               </div>
               <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Your Information</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Review and update if needed</div>
+                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Your Information</div>
+                <div style={{ color: textSecondary, fontSize: "13px" }}>Review and update if needed</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               <div style={{ gridColumn: "1 / -1" }}>
                 <label style={labelStyle}>Full Name *</label>
                 <input style={inputStyle} value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Your full name" />
@@ -482,244 +530,146 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
             </div>
           </div>
 
-          {/* ── Vehicles ── */}
-          {vehicles.length > 0 && (
-            <div className="fade-in" style={sectionStyle}>
-              <div style={sectionHeaderStyle}>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Car size={18} color="#0284c7" />
-                </div>
-                <div>
-                  <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Vehicle Details</div>
-                  <div style={{ color: "#64748b", fontSize: "12px" }}>Add VIN if not already provided</div>
-                </div>
+          {/* ── Vehicle Info ── */}
+          <div className="fade-up delay-2" style={sectionStyle}>
+            <div style={sectionHeaderStyle}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
+                <Car size={20} color={neonCyan} />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {vehicles.map((v, i) => (
-                  <div key={v.id} style={{ background: "rgba(0,240,255,0.04)", border: "1px solid rgba(0,240,255,0.1)", borderRadius: "12px", padding: "16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                      <div>
-                        <div style={{ color: "#0f172a", fontWeight: 700 }}>{v.year} {v.make} {v.model}</div>
-                        <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, background: v.operable ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: v.operable ? "#22c55e" : "#ef4444" }}>
-                            {v.operable ? "Operable" : "Inoperable"}
-                          </span>
-                          <span style={{ padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600, background: "#e2e8f0", color: "#94a3b8" }}>
-                            {v.trailer_type}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ color: "#94a3b8", fontSize: "12px" }}>#{i + 1}</div>
+              <div>
+                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Vehicle Details</div>
+                <div style={{ color: textSecondary, fontSize: "13px" }}>Verify your vehicles and provide VINs</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {vehicles.map((v, i) => (
+                <div key={v.id} style={{ padding: "20px", background: "rgba(2, 6, 23, 0.5)", border: "1px solid rgba(148, 163, 184, 0.1)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+                  <div>
+                    <div style={{ color: textPrimary, fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>
+                      {v.year} {v.make} {v.model}
                     </div>
-                    <div>
-                      <label style={labelStyle}>VIN Number</label>
-                      <input
-                        style={inputStyle}
-                        value={vehicleVins[v.id] || ""}
-                        onChange={e => setVehicleVins({ ...vehicleVins, [v.id]: e.target.value })}
-                        placeholder="17-character VIN (optional)"
-                        maxLength={17}
-                      />
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: v.is_operable ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: v.is_operable ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+                        {v.is_operable ? "Operable" : "Inoperable"}
+                      </span>
+                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: "rgba(148,163,184,0.1)", color: textSecondary, fontWeight: 700 }}>
+                        {v.type || "Open"}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div style={{ flex: "1", minWidth: "250px", maxWidth: "350px" }}>
+                    <label style={{ ...labelStyle, fontSize: "11px", marginBottom: "4px" }}>Vehicle VIN (Optional)</label>
+                    <input 
+                      style={{ ...inputStyle, padding: "12px", fontSize: "14px", fontFamily: "monospace" }} 
+                      value={vehicleVins[v.id] || ""} 
+                      onChange={e => setVehicleVins(prev => ({...prev, [v.id]: e.target.value}))} 
+                      placeholder="17-Digit VIN" 
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* ── Pickup ── */}
-          <div className="fade-in" style={sectionStyle}>
+          {/* ── Route & Contacts ── */}
+          <div className="fade-up delay-3" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MapPin size={18} color="#0284c7" />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
+                <MapPin size={20} color={neonCyan} />
               </div>
               <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Pickup Details</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Where should the driver pick up the vehicle?</div>
+                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Route & Contacts</div>
+                <div style={{ color: textSecondary, fontSize: "13px" }}>Where are we shipping to?</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Full Pickup Address *</label>
-                <input style={inputStyle} value={pickupFullAddress} onChange={e => setPickupFullAddress(e.target.value)} placeholder="123 Main St, Miami, FL 33101" />
+            
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+              {/* Pickup */}
+              <div style={{ paddingRight: "16px", borderRight: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                <div style={{ color: neonCyan, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonCyan,boxShadow:\`0 0 10px \${neonCyan}\`}}></div> Origin / Pickup</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, minHeight: "80px", resize: "none"}} value={pickupFullAddress} onChange={e => setPickupFullAddress(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Name</label><input style={inputStyle} value={pickupContactName} onChange={e => setPickupContactName(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Phone</label><input style={inputStyle} value={pickupContactPhone} onChange={e => setPickupContactPhone(e.target.value)} /></div>
+                </div>
               </div>
+
+              {/* Dropoff */}
               <div>
-                <label style={labelStyle}>Contact Name at Pickup</label>
-                <input style={inputStyle} value={pickupContactName} onChange={e => setPickupContactName(e.target.value)} placeholder="Person releasing the vehicle" />
-              </div>
-              <div>
-                <label style={labelStyle}>Contact Phone at Pickup</label>
-                <input style={inputStyle} value={pickupContactPhone} onChange={e => setPickupContactPhone(e.target.value)} placeholder="(555) 000-0000" />
+                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:\`0 0 10px \${neonBlue}\`}}></div> Destination / Dropoff</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, minHeight: "80px", resize: "none"}} value={dropoffFullAddress} onChange={e => setDropoffFullAddress(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Name</label><input style={inputStyle} value={dropoffContactName} onChange={e => setDropoffContactName(e.target.value)} /></div>
+                  <div><label style={labelStyle}>Contact Phone</label><input style={inputStyle} value={dropoffContactPhone} onChange={e => setDropoffContactPhone(e.target.value)} /></div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ── Dropoff ── */}
-          <div className="fade-in" style={sectionStyle}>
+          {/* ── Terms & Signature ── */}
+          <div className="fade-up delay-4" style={sectionStyle}>
             <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(14,165,233,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <MapPin size={18} color="#0369a1" />
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0,240,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 15px \${neonCyan}20\` }}>
+                <PenLine size={20} color={neonCyan} />
               </div>
               <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Delivery Details</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Where should the vehicle be delivered?</div>
+                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Terms & Signature</div>
+                <div style={{ color: textSecondary, fontSize: "13px" }}>Please read and sign below</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Full Delivery Address *</label>
-                <input style={inputStyle} value={dropoffFullAddress} onChange={e => setDropoffFullAddress(e.target.value)} placeholder="456 Oak Ave, Dallas, TX 75201" />
-              </div>
-              <div>
-                <label style={labelStyle}>Contact Name at Delivery</label>
-                <input style={inputStyle} value={dropoffContactName} onChange={e => setDropoffContactName(e.target.value)} placeholder="Person receiving the vehicle" />
-              </div>
-              <div>
-                <label style={labelStyle}>Contact Phone at Delivery</label>
-                <input style={inputStyle} value={dropoffContactPhone} onChange={e => setDropoffContactPhone(e.target.value)} placeholder="(555) 000-0000" />
-              </div>
-            </div>
-          </div>
 
-          {/* ── Shipment Summary (read-only) ── */}
-          <div className="fade-in" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(34,197,94,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <DollarSign size={18} color="#22c55e" />
-              </div>
-              <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Shipment Summary</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Your agreed pricing & dates</div>
-              </div>
+            <div style={{ background: "rgba(2, 6, 23, 0.7)", border: "1px solid rgba(148, 163, 184, 0.1)", borderRadius: "16px", padding: "24px", height: "240px", overflowY: "auto", marginBottom: "24px", color: textSecondary, fontSize: "13px", lineHeight: "1.8", whiteSpace: "pre-wrap", boxShadow: "inset 0 4px 20px rgba(0,0,0,0.5)" }}>
+              {TERMS}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div style={{ background: "#0f172a", borderRadius: "10px", padding: "14px" }}>
-                <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Est. Pickup</div>
-                <div style={{ color: "#0f172a", fontWeight: 600 }}>{order.est_pickup_date || "TBD"}</div>
-              </div>
-              <div style={{ background: "#0f172a", borderRadius: "10px", padding: "14px" }}>
-                <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Est. Delivery</div>
-                <div style={{ color: "#0f172a", fontWeight: 600 }}>{order.est_delivery_date || "TBD"}</div>
-              </div>
-              <div style={{ background: "rgba(0,240,255,0.05)", border: "1px solid rgba(0,240,255,0.15)", borderRadius: "10px", padding: "14px", gridColumn: "1 / -1" }}>
-                <div style={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Total Agreed Rate</div>
-                <div style={{ color: "#0284c7", fontWeight: 800, fontSize: "28px" }}>${order.customer_price || 0}</div>
-                <div style={{ color: "#94a3b8", fontSize: "12px", marginTop: "2px" }}>Due upon delivery</div>
-              </div>
-            </div>
-          </div>
 
-          {/* ── Terms & Conditions ── */}
-          <div className="fade-in" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(245,158,11,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AlertCircle size={18} color="#f59e0b" />
-              </div>
-              <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Terms & Conditions</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Please read carefully before signing</div>
-              </div>
-            </div>
-            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px", height: "200px", overflowY: "auto", marginBottom: "16px" }}>
-              <pre style={{ color: "#94a3b8", fontSize: "12px", lineHeight: "1.8", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{TERMS}</pre>
-            </div>
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={e => setTermsAccepted(e.target.checked)}
-                style={{ width: "18px", height: "18px", accentColor: "#0284c7", cursor: "pointer" }}
+            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", marginBottom: "32px", padding: "16px", background: termsAccepted ? "rgba(0,240,255,0.05)" : "transparent", border: \`1px solid \${termsAccepted ? "rgba(0,240,255,0.3)" : "rgba(148, 163, 184, 0.2)"}\`, borderRadius: "14px", transition: "all 0.3s ease" }}>
+              <input 
+                type="checkbox" 
+                checked={termsAccepted} 
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                style={{ width: "20px", height: "20px", accentColor: neonCyan, cursor: "pointer" }}
               />
-              <span style={{ color: "#0f172a", fontSize: "14px" }}>
-                I have read and agree to the Terms & Conditions above. I authorize Neon Auto Transport to arrange the shipment of my vehicle(s).
-              </span>
+              <span style={{ color: textPrimary, fontWeight: 600, fontSize: "14px" }}>I have read and agree to the Terms & Conditions</span>
             </label>
-          </div>
 
-          {/* ── Digital Signature ── */}
-          <div className="fade-in" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(139,92,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <PenLine size={18} color="#8b5cf6" />
+            <div style={{ marginBottom: "32px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Draw Your Signature</label>
+                <button type="button" onClick={clearSignature} style={{ background: "transparent", border: "none", color: neonCyan, fontSize: "12px", fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}>
+                  Clear
+                </button>
               </div>
-              <div>
-                <div style={{ color: "#0f172a", fontWeight: 700, fontSize: "15px" }}>Digital Signature</div>
-                <div style={{ color: "#64748b", fontSize: "12px" }}>Draw your signature in the box below</div>
+              <div style={{ borderRadius: "16px", overflow: "hidden", border: \`2px solid \${hasSigned ? neonCyan : "rgba(148, 163, 184, 0.2)"}\`, transition: "border-color 0.3s ease", boxShadow: hasSigned ? \`0 0 20px \${neonCyan}20\` : "none" }}>
+                <canvas 
+                  ref={canvasRef}
+                  width={900}
+                  height={180}
+                  style={{ display: "block", background: "#020617", cursor: "crosshair", width: "100%", touchAction: "none" }}
+                  onMouseDown={startDraw}
+                  onMouseMove={draw}
+                  onMouseUp={stopDraw}
+                  onMouseLeave={stopDraw}
+                  onTouchStart={startDraw}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDraw}
+                />
               </div>
+              {!hasSigned && <div style={{ color: textSecondary, fontSize: "12px", marginTop: "8px", textAlign: "center" }}>Sign within the box above</div>}
             </div>
-            <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", border: `2px dashed ${hasSigned ? "rgba(0,240,255,0.4)" : "#cbd5e1"}`, transition: "border-color 0.3s" }}>
-              <canvas
-                ref={canvasRef}
-                width={720}
-                height={160}
-                style={{ display: "block", background: "#ffffff", cursor: "crosshair", width: "100%", touchAction: "none" }}
-                onMouseDown={startDraw}
-                onMouseMove={draw}
-                onMouseUp={stopDraw}
-                onMouseLeave={stopDraw}
-                onTouchStart={startDraw}
-                onTouchMove={draw}
-                onTouchEnd={stopDraw}
-              />
-              {!hasSigned && (
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  <div style={{ textAlign: "center", color: "#94a3b8" }}>
-                    <PenLine size={28} style={{ margin: "0 auto 8px", opacity: 0.4 }} />
-                    <div style={{ fontSize: "14px" }}>Sign here with your mouse or finger</div>
-                  </div>
-                </div>
-              )}
-            </div>
-            {hasSigned && (
-              <button onClick={clearSignature} style={{ marginTop: "10px", padding: "6px 14px", background: "#f1f5f9", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#ef4444", fontSize: "12px", cursor: "pointer" }}>
-                Clear Signature
-              </button>
+
+            {error && (
+              <div className="fade-in" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
+                <AlertCircle size={18} /> {error}
+              </div>
             )}
-          </div>
 
-          {/* ── Error ── */}
-          {error && (
-            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "14px 18px", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", color: "#ef4444" }}>
-              <AlertCircle size={18} />
-              <span style={{ fontSize: "14px" }}>{error}</span>
-            </div>
-          )}
-
-          {/* ── Submit Button ── */}
-          <div className="no-print" style={{ textAlign: "center" }}>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              style={{
-                padding: "16px 48px",
-                background: submitting ? "#1e293b" : "linear-gradient(135deg, #0284c7, #0369a1)",
-                color: submitting ? "#94a3b8" : "#f8fafc",
-                border: "none",
-                borderRadius: "14px",
-                fontWeight: 800,
-                fontSize: "16px",
-                cursor: submitting ? "not-allowed" : "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                boxShadow: submitting ? "none" : "0 0 30px rgba(0,240,255,0.3)",
-                transition: "all 0.3s",
-                letterSpacing: "0.5px",
-              }}
+            <button 
+              onClick={handleSubmit} 
+              disabled={submitting || !termsAccepted || !hasSigned}
+              style={{ width: "100%", padding: "20px", background: (submitting || !termsAccepted || !hasSigned) ? "rgba(148, 163, 184, 0.1)" : \`linear-gradient(135deg, \${neonCyan}, \${neonBlue})\`, color: (submitting || !termsAccepted || !hasSigned) ? textSecondary : "#020617", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "18px", cursor: (submitting || !termsAccepted || !hasSigned) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", transition: "all 0.3s ease", boxShadow: (submitting || !termsAccepted || !hasSigned) ? "none" : \`0 0 30px \${neonCyan}40\` }}
             >
-              {submitting ? (
-                <><Loader2 size={20} className="animate-spin" /> Submitting…</>
-              ) : (
-                <><CheckCircle size={20} /> Submit & Sign Order</>
-              )}
+              {submitting ? <><Loader2 size={24} className="animate-spin" /> Submitting...</> : <><CheckCircle size={24} /> Submit & Sign Agreement</>}
             </button>
-            <div style={{ color: "#94a3b8", fontSize: "12px", marginTop: "12px" }}>
-              🔒 Your information is secure and encrypted
-            </div>
-          </div>
-
-          <div style={{ textAlign: "center", color: "#334155", fontSize: "12px", marginTop: "40px" }}>
-            Questions? Call us at <span style={{ color: "#0284c7" }}>(571) 576-7711</span> · neonautotransport.com
           </div>
         </div>
       </div>
