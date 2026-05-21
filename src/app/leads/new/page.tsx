@@ -59,8 +59,7 @@ export default function NewLeadPage() {
           await supabase.from("customers").insert([{
             customer_name: data.customerName,
             email: data.email || null,
-            phone: data.phone || null,
-            status: 'Active'
+            phone: data.phone || null
           }]);
         }
       }

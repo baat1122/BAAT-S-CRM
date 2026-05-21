@@ -44,8 +44,7 @@ export default function NewOrderPage() {
       const { data: newCustomer, error: custError } = await (supabase.from("customers") as any).insert([{
         customer_name: new_customer_name,
         email: new_customer_email || null,
-        phone: new_customer_phone || null,
-        status: 'Active'
+        phone: new_customer_phone || null
       }]).select("id").single();
       
       if (!custError && newCustomer) {
