@@ -25,7 +25,11 @@ export default function NewOrderPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const customer_id = formData.get("customer_id") as string;
+    let customer_id = formData.get("customer_id") as string;
+    const new_customer_name = formData.get("new_customer_name") as string;
+    const new_customer_email = formData.get("new_customer_email") as string;
+    const new_customer_phone = formData.get("new_customer_phone") as string;
+
     const vehicle_name = formData.get("vehicle_name") as string;
     const pickup_location = formData.get("pickup_location") as string;
     const dropoff_location = formData.get("dropoff_location") as string;
@@ -34,6 +38,20 @@ export default function NewOrderPage() {
     const profit = customer_price - carrier_price;
     const payment_method = formData.get("payment_method") as string;
     const payment_timing = formData.get("payment_timing") as string;
+    
+    // Auto-create customer if manual details are provided and no existing customer was selected
+    if (!customer_id && new_customer_name) {
+      const { data: newCustomer, error: custError } = await (supabase.from("customers") as any).insert([{
+        customer_name: new_customer_name,
+        email: new_customer_email || null,
+        phone: new_customer_phone || null,
+        status: 'Active'
+      }]).select("id").single();
+      
+      if (!custError && newCustomer) {
+        customer_id = newCustomer.id;
+      }
+    }
     
     const order_id = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -108,11 +126,39 @@ export default function NewOrderPage() {
                   name="customer_id"
                   className="w-full border border-gray-300 p-3.5 rounded-lg text-[15px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all bg-white"
                 >
-                  <option value="">Select a customer (Optional)</option>
+                  <option value="">Select Existing (Or Enter New Below)</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.customer_name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="col-span-1 md:col-span-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Or Create New Customer</span>
+                  <input 
+                    name="new_customer_name"
+                    type="text" 
+                    className="w-full border border-gray-300 p-3 rounded-lg text-[14px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                    placeholder="Full Name (if not selected above)"
+                  />
+                </div>
+                <div>
+                  <input 
+                    name="new_customer_phone"
+                    type="tel" 
+                    className="w-full border border-gray-300 p-3 rounded-lg text-[14px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                    placeholder="Phone"
+                  />
+                </div>
+                <div>
+                  <input 
+                    name="new_customer_email"
+                    type="email" 
+                    className="w-full border border-gray-300 p-3 rounded-lg text-[14px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                    placeholder="Email"
+                  />
+                </div>
               </div>
 
               <div className="relative">

@@ -48,6 +48,23 @@ export default function NewLeadPage() {
     try {
       const vehicleNameStr = vehicles.map(v => `${v.year} ${v.make} ${v.model}`).join(', ');
 
+      // 0. Auto-save to Customers list if not already there
+      if (data.customerName) {
+        const { data: existing } = await supabase.from("customers")
+          .select("id")
+          .eq("customer_name", data.customerName)
+          .limit(1);
+
+        if (!existing || existing.length === 0) {
+          await supabase.from("customers").insert([{
+            customer_name: data.customerName,
+            email: data.email || null,
+            phone: data.phone || null,
+            status: 'Active'
+          }]);
+        }
+      }
+
       // 1. Insert the Lead (Quote)
       const { data: leadData, error: leadError } = await supabase.from("leads").insert([
         {
