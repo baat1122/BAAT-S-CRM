@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neon-blue: #0090d0; /* Light Blue from Logo */
-  --color-dark-navy: #0a192f;
-  --color-electric-cyan: #004b87; /* Dark Blue from Logo */
+  --color-neon-blue: #2563eb; /* Corporate Bright Blue */
+  --color-dark-navy: #0a1128; /* Corporate Navy */
+  --color-electric-cyan: #1d4ed8; /* Darker Blue */
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,64 +12,42 @@
 }
 
 :root {
-  --background: #f3f4f6;
-  --foreground: #0f172a;
+  --background: #f4f7f9;
+  --foreground: #0a1128;
   --surface: #ffffff;
-  --border: #e2e8f0;
+  --border: #e5e7eb;
 }
 
-:root[data-theme="dark"] {
+/* Clean panel utility */
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem; /* 12px */
+}
+
+[data-theme="dark"] {
   --background: #0f172a;
   --foreground: #f8fafc;
   --surface: #1e293b;
   --border: #334155;
+  --color-neon-blue: #3b82f6;
+  --color-electric-cyan: #2563eb;
 }
 
-:root[data-theme="bright"] {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --surface: #f8fafc;
-  --border: #cbd5e1;
-}
-
-:root[data-theme="neon"] {
+[data-theme="neon"] {
   --background: #020617;
-  --foreground: #f8fafc;
-  --surface: #0f172a;
-  --border: #c026d3; /* Fuchsia border */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --surface: #1e293b;
-    --border: #334155;
-  }
+  --foreground: #ffffff;
+  --surface: #0a0f1d;
+  --border: #1e293b;
+  --color-neon-blue: #00f0ff;
+  --color-electric-cyan: #ff00ea;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: var(--surface);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-:root[data-theme="dark"] .glass-panel,
-:root:not([data-theme]) .glass-panel {
-  background: rgba(30, 41, 59, 0.7);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-:root[data-theme="neon"] .glass-panel {
-  background: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 4px 15px rgba(192, 38, 211, 0.1);
-}

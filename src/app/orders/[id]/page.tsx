@@ -3,8 +3,9 @@
 import { useState, useEffect, use } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { User, Truck, MapPin, DollarSign, FileText, Link as LinkIcon, Edit, Download } from "lucide-react";
+import { User, Truck, MapPin, DollarSign, FileText, Link as LinkIcon, Edit, Download, FileSignature, RefreshCcw, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { generatePDF } from "@/lib/pdfGenerator";
 
 export default function OrderLoadSheet({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
+  const [editVehicles, setEditVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -43,14 +45,15 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
 
   const toggleEdit = () => {
     setIsEditing(!isEditing);
-    if (isEditing && order) {
+    if (!isEditing && order) {
       setEditForm(order); // reset
+      setEditVehicles(JSON.parse(JSON.stringify(vehicles))); // deep copy
     }
   };
 
   const saveEdits = async () => {
     setSaving(true);
-    await supabase.from("orders").update({
+    const { error: updateError } = await supabase.from("orders").update({
       order_id: editForm.order_id,
       source: editForm.source,
       pickup_location: editForm.pickup_location,
@@ -60,8 +63,30 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
       customer_price: parseFloat(editForm.customer_price) || 0,
       carrier_price: parseFloat(editForm.carrier_price) || 0,
       profit: (parseFloat(editForm.customer_price) || 0) - (parseFloat(editForm.carrier_price) || 0),
-      status: editForm.status
+      status: editForm.status,
+      payment_method: editForm.payment_method,
+      payment_timing: editForm.payment_timing
     }).eq("id", order.id);
+
+    if (updateError) {
+      alert(`Error saving order: ${updateError.message}\n\nIf it says a column does not exist, you need to run the SQL migration in Supabase!`);
+    }
+
+    // Save Vehicles (Delete existing and insert new to simplify, or update if id exists)
+    // For simplicity, we can delete all vehicles for this order and insert the editVehicles array
+    await supabase.from("order_vehicles").delete().eq("order_id", order.id);
+    if (editVehicles.length > 0) {
+      const vehiclesToInsert = editVehicles.map(v => ({
+        order_id: order.id,
+        year: v.year,
+        make: v.make,
+        model: v.model,
+        vin: v.vin,
+        operable: v.operable,
+        trailer_type: v.trailer_type
+      }));
+      await supabase.from("order_vehicles").insert(vehiclesToInsert);
+    }
 
     // Refresh
     const { data: refreshed } = await supabase.from("orders").select(`*, customers (*), carriers (*)`).eq("id", order.id).single();
@@ -69,9 +94,26 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
       setOrder(refreshed);
       setEditForm(refreshed);
     }
+    const { data: refreshedVehicles } = await supabase.from("order_vehicles").select("*").eq("order_id", id);
+    if (refreshedVehicles) setVehicles(refreshedVehicles);
     
     setIsEditing(false);
     setSaving(false);
+  };
+
+  const requestNewSignature = async () => {
+    if (!confirm("Are you sure you want to request a new signature? This will clear the current signature data and change the status back to Pending.")) return;
+    
+    await supabase.from("orders").update({
+      form_submitted: false,
+      customer_signature: null,
+      signed_at: null,
+      terms_accepted: false
+    }).eq("id", order.id);
+    
+    // Refresh
+    const { data: refreshed } = await supabase.from("orders").select(`*, customers (*), carriers (*)`).eq("id", order.id).single();
+    if (refreshed) setOrder(refreshed);
   };
 
   if (loading) return <div className="p-8">Loading order details...</div>;
@@ -176,6 +218,86 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
               <label className="block text-sm font-medium mb-1">Carrier Pay ($)</label>
               <input type="number" value={editForm.carrier_price || 0} onChange={e => setEditForm({...editForm, carrier_price: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-border bg-background text-sm font-bold text-red-400" />
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Method</label>
+              <select value={editForm.payment_method || ''} onChange={e => setEditForm({...editForm, payment_method: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-border bg-background text-sm">
+                <option value="">Select Method</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Zelle">Zelle</option>
+                <option value="CashApp">CashApp</option>
+                <option value="Venmo">Venmo</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Timing</label>
+              <select value={editForm.payment_timing || ''} onChange={e => setEditForm({...editForm, payment_timing: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-border bg-background text-sm">
+                <option value="">Select Timing</option>
+                <option value="At Pickup">At Pickup</option>
+                <option value="At Dropoff">At Dropoff</option>
+                <option value="COD">COD</option>
+                <option value="Pre-Paid">Pre-Paid</option>
+              </select>
+            </div>
+            
+            {/* Edit Vehicles Section */}
+            <div className="md:col-span-2 pt-4 mt-4 border-t border-border">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-neon-blue">Vehicles</h3>
+                <button 
+                  onClick={() => setEditVehicles([...editVehicles, { year: '', make: '', model: '', vin: '', operable: true, trailer_type: 'Open' }])}
+                  className="flex items-center gap-1 text-xs font-bold bg-foreground/10 px-3 py-1.5 rounded-lg hover:bg-foreground/20"
+                >
+                  <Plus size={14} /> Add Vehicle
+                </button>
+              </div>
+              <div className="space-y-4">
+                {editVehicles.map((v, i) => (
+                  <div key={i} className="p-4 bg-foreground/5 rounded-xl border border-border relative">
+                    <button 
+                      onClick={() => setEditVehicles(editVehicles.filter((_, idx) => idx !== i))}
+                      className="absolute top-2 right-2 text-red-500 hover:bg-red-500/10 p-1.5 rounded-md"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Year</label>
+                        <input value={v.year} onChange={e => { const newV = [...editVehicles]; newV[i].year = e.target.value; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Make</label>
+                        <input value={v.make} onChange={e => { const newV = [...editVehicles]; newV[i].make = e.target.value; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Model</label>
+                        <input value={v.model} onChange={e => { const newV = [...editVehicles]; newV[i].model = e.target.value; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">VIN</label>
+                        <input value={v.vin || ''} onChange={e => { const newV = [...editVehicles]; newV[i].vin = e.target.value; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium mb-1">Operable</label>
+                        <select value={v.operable ? 'true' : 'false'} onChange={e => { const newV = [...editVehicles]; newV[i].operable = e.target.value === 'true'; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm">
+                          <option value="true">Operable</option>
+                          <option value="false">Inoperable</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium mb-1">Trailer Type</label>
+                        <select value={v.trailer_type || 'Open'} onChange={e => { const newV = [...editVehicles]; newV[i].trailer_type = e.target.value; setEditVehicles(newV); }} className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm">
+                          <option value="Open">Open</option>
+                          <option value="Enclosed">Enclosed</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {editVehicles.length === 0 && <p className="text-sm text-foreground/50">No vehicles added.</p>}
+              </div>
+            </div>
+
             <div className="md:col-span-2 p-4 bg-foreground/5 rounded-xl border border-border mt-2">
               <p className="text-sm">Carrier & Customer Database relationships are managed from their respective tabs. To assign a carrier, use the Dispatch Board.</p>
             </div>
@@ -224,6 +346,15 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
                 <span className="font-bold text-lg text-neon-blue">Broker Profit</span>
                 <span className="font-bold text-xl text-green-500">${order.profit || 0}</span>
               </div>
+              {(order.payment_method || order.payment_timing) && (
+                <div className="pt-4 border-t border-border/50 bg-foreground/5 p-3 rounded-xl">
+                  <p className="text-xs text-foreground/50 font-bold uppercase mb-2">Customer Payment Method</p>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-semibold">{order.payment_method || 'Not Specified'}</span>
+                    <span className="px-2 py-1 bg-foreground/10 rounded">{order.payment_timing || 'Timing Not Set'}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -268,6 +399,79 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
               </div>
             ) : (
               <p className="text-sm text-foreground/50">No customer linked to this order.</p>
+            )}
+          </div>
+
+          {/* Customer Agreement Panel */}
+          <div className="glass-panel p-6 rounded-2xl border border-border md:col-span-2">
+            <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-2">
+              <div className="flex items-center gap-2 text-neon-blue">
+                <FileSignature size={20} />
+                <h3 className="font-bold text-lg text-foreground">Customer Agreement</h3>
+              </div>
+              {order.form_submitted && (
+                <button 
+                  onClick={requestNewSignature}
+                  className="flex items-center gap-1 px-3 py-1 bg-foreground/10 hover:bg-red-500/20 hover:text-red-500 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <RefreshCcw size={12} /> Request New Signature
+                </button>
+              )}
+            </div>
+            {order.form_submitted ? (
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 rounded bg-green-500/20 text-green-500 text-xs font-bold uppercase tracking-wider">Signed</span>
+                    <span className="text-sm text-foreground/70">on {new Date(order.signed_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm font-medium mt-2">{order.customer_signature?.split(" | ")[2] || "Electronic Signature provided."}</p>
+                  <p className="text-xs text-foreground/50">{order.customer_signature?.split(" | ")[0]} | {order.customer_signature?.split(" | ")[1]}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    // Extract fields from saved signature if possible
+                    const sigParts = order.customer_signature ? order.customer_signature.split(" | ") : [];
+                    const ipPart = sigParts.find((p: string) => p.startsWith("IP: ")) || "";
+                    const datePart = sigParts.find((p: string) => p.startsWith("Date: ")) || "";
+                    const namePart = sigParts.find((p: string) => p.startsWith("Signed: ")) || "";
+
+                    const pickupParts = (order.pickup_location || "").split(", ");
+                    const dropoffParts = (order.dropoff_location || "").split(", ");
+
+                    generatePDF({
+                      order,
+                      vehicles,
+                      fullName: order.customers?.customer_name || "",
+                      email: order.customers?.email || "",
+                      phone: order.customers?.phone || "",
+                      pickupDate: order.est_pickup_date || "",
+                      originAddress: pickupParts.slice(0, -2).join(", ") || order.pickup_location,
+                      originCity: pickupParts.length > 1 ? pickupParts.slice(-2).join(", ") : "",
+                      originContactName: order.pickup_contact_name || "",
+                      originContactEmail: "",
+                      originContactPhone: order.pickup_contact_phone || "",
+                      destinationAddress: dropoffParts.slice(0, -2).join(", ") || order.dropoff_location,
+                      destinationCity: dropoffParts.length > 1 ? dropoffParts.slice(-2).join(", ") : "",
+                      destinationContactName: order.dropoff_contact_name || "",
+                      destinationContactEmail: "",
+                      destinationContactPhone: order.dropoff_contact_phone || "",
+                      electronicSignature: namePart.replace("Signed: ", ""),
+                      ipAddress: ipPart.replace("IP: ", ""),
+                      agreedDate: datePart.replace("Date: ", "")
+                    });
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 bg-neon-blue text-dark-navy font-bold rounded-xl hover:bg-electric-cyan transition-colors shadow-[0_0_10px_rgba(0,240,255,0.3)] text-sm"
+                >
+                  <Download size={18} />
+                  Download Signed PDF
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col justify-center text-center p-4">
+                <span className="px-3 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs font-bold uppercase tracking-wider mx-auto mb-3">Pending</span>
+                <p className="text-sm text-foreground/70">The customer has not yet signed the agreement.</p>
+              </div>
             )}
           </div>
 

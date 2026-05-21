@@ -74,53 +74,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (!session) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-dark-navy via-background to-background">
-        <div className="glass-panel p-8 rounded-2xl border border-border w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-neon-blue tracking-wider mb-2">NEON CRM</h1>
-            <p className="text-foreground/70">Sign in to access your dashboard</p>
+      <div className="h-screen w-full flex flex-col" style={{ background: "#ffffff" }}>
+        {/* Top Header */}
+        <div style={{ background: "#0a1128", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ color: "#3b82f6", fontSize: "32px", fontWeight: 900, fontStyle: "italic", lineHeight: 1 }}>N</div>
+            <div style={{ marginTop: "6px" }}>
+              <div style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1 }}>eon</div>
+              <div style={{ fontSize: "10px", color: "#9ca3af", letterSpacing: "1px", textTransform: "uppercase", marginTop: "2px" }}>AUTO TRANSPORT</div>
+            </div>
           </div>
-          
-          {authError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl mb-6 text-sm text-center">
-              {authError}
-            </div>
-          )}
+          <div style={{ fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ color: "#9ca3af" }}>CRM Portal</span>
+          </div>
+        </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-foreground/80">Email</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-neon-blue/50 transition-all"
-                placeholder="agent@neon.com"
-              />
+        {/* Login Card */}
+        <div className="flex-1 flex items-center justify-center" style={{ background: "#f4f7f9" }}>
+          <div className="bg-white p-10 rounded-xl border border-gray-200 w-full max-w-md shadow-lg">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-[#0a1128] tracking-tight mb-2">Welcome Back</h1>
+              <p className="text-gray-500">Sign in to access the Neon CRM dashboard</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1 text-foreground/80">Password</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface focus:outline-none focus:ring-2 focus:ring-neon-blue/50 transition-all"
-                placeholder="••••••••"
-              />
-            </div>
-            <button 
-              type="submit" 
-              className="w-full py-3 mt-4 rounded-xl bg-neon-blue text-dark-navy font-bold hover:bg-electric-cyan transition-colors shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-            >
-              Sign In
-            </button>
-          </form>
-          
-          <p className="text-center text-xs text-foreground/50 mt-8">
-            Note: You must create your user account via the Supabase Dashboard first.
-          </p>
+            
+            {authError && (
+              <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg mb-6 text-sm text-center">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="relative">
+                <label className="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Email</label>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-[15px]"
+                  placeholder="agent@neonautotransport.com"
+                />
+              </div>
+              <div className="relative">
+                <label className="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-500 uppercase tracking-wider">Password</label>
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-[15px]"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button 
+                type="submit" 
+                className="w-full py-3.5 mt-2 rounded-lg bg-[#2563eb] text-white font-bold hover:bg-blue-700 transition-colors"
+              >
+                Sign In
+              </button>
+            </form>
+            
+            <p className="text-center text-xs text-gray-400 mt-8">
+              Neon Auto Transport &bull; Internal CRM Access Only
+            </p>
+          </div>
         </div>
       </div>
     );

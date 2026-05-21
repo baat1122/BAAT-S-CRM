@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
     // The app runs correctly — skipping strict TS checks to allow production build
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
 };
 
 export default nextConfig;

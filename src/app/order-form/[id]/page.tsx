@@ -1,85 +1,60 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-import {
-  CheckCircle,
-  Truck,
-  MapPin,
-  User,
-  Phone,
-  Mail,
-  PenLine,
-  Download,
-  Loader2,
-  AlertCircle,
-  Calendar,
-  DollarSign,
-  Car,
-  ShieldCheck,
-  ChevronLeft
-} from "lucide-react";
+import { Loader2, AlertCircle, User, Phone, Mail, ChevronRight, ChevronLeft, CheckCircle, Download } from "lucide-react";
+import { useParams } from "next/navigation";
+import { generatePDF, TERMS } from "@/lib/pdfGenerator";
 
-const TERMS = `NEON AUTO TRANSPORT — VEHICLE TRANSPORT AGREEMENT
+export default function OrderFormPage() {
+  const { id } = useParams();
+  const formRef = useRef<HTMLDivElement>(null);
 
-1. CARRIER AUTHORITY: Neon Auto Transport operates as a licensed motor carrier / freight broker. Transport services are provided by DOT-registered carriers.
 
-2. VEHICLE CONDITION: The customer acknowledges the vehicle(s) listed are in the described condition (operable/inoperable). Any pre-existing damage should be noted on the Bill of Lading at pickup.
-
-3. PAYMENT: The agreed tariff is due upon delivery unless alternative arrangements have been confirmed in writing. Accepted methods: Zelle, Cash, Certified Check.
-
-4. INSURANCE: All vehicles are covered by the assigned carrier's cargo insurance policy during transport. The customer is encouraged to maintain their personal vehicle insurance during transit.
-
-5. PICK UP & DELIVERY WINDOWS: Pickup and delivery dates provided are estimates. Neon Auto Transport is not liable for delays caused by weather, mechanical issues, or other circumstances beyond our control.
-
-6. CANCELLATION POLICY: Orders cancelled after dispatch has been confirmed are subject to a cancellation fee. Please contact us immediately if plans change.
-
-7. VEHICLE KEYS: The customer agrees to provide a working set of keys to the driver at pickup. The driver is authorized to operate the vehicle solely for the purpose of loading and unloading.
-
-8. MODIFICATIONS & PERSONAL ITEMS: Neon Auto Transport is not responsible for personal items left inside the vehicle or aftermarket modifications. Personal items are transported at the owner's risk.
-
-9. DISPUTE RESOLUTION: Any disputes shall be resolved through binding arbitration in accordance with the laws of the State of Virginia.
-
-10. AGREEMENT: By signing below, the customer confirms they have read, understood, and agree to these Terms & Conditions and authorize Neon Auto Transport to arrange the shipment of the listed vehicle(s).`;
-
-export default function OrderFormPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
-
+  const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Security Gate
+  
+  // Auth Gate
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authInput, setAuthInput] = useState("");
   const [authErrorMsg, setAuthErrorMsg] = useState("");
 
-  // Editable customer fields
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [pickupFullAddress, setPickupFullAddress] = useState("");
-  const [pickupContactName, setPickupContactName] = useState("");
-  const [pickupContactPhone, setPickupContactPhone] = useState("");
-  const [dropoffFullAddress, setDropoffFullAddress] = useState("");
-  const [dropoffContactName, setDropoffContactName] = useState("");
-  const [dropoffContactPhone, setDropoffContactPhone] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [vehicleVins, setVehicleVins] = useState<Record<string, string>>({});
+  // Wizard state
+  const [step, setStep] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("Credit Card");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Signature & PDF
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pdfRef = useRef<HTMLDivElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasSigned, setHasSigned] = useState(false);
-  const lastPos = useRef<{ x: number; y: number } | null>(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // --- Step 1: Order Info ---
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
+
+  // --- Step 2: Origin ---
+  const [originAddress, setOriginAddress] = useState("");
+  const [originCity, setOriginCity] = useState("");
+  const [isOriginContact, setIsOriginContact] = useState(false);
+  const [originContactName, setOriginContactName] = useState("");
+  const [originContactEmail, setOriginContactEmail] = useState("");
+  const [originContactPhone, setOriginContactPhone] = useState("");
+
+  // --- Step 3: Destination ---
+  const [destinationAddress, setDestinationAddress] = useState("");
+  const [destinationCity, setDestinationCity] = useState("");
+  const [isDestinationContact, setIsDestinationContact] = useState(false);
+  const [destinationContactName, setDestinationContactName] = useState("");
+  const [destinationContactEmail, setDestinationContactEmail] = useState("");
+  const [destinationContactPhone, setDestinationContactPhone] = useState("");
+
+  // --- Step 4: Terms ---
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [electronicSignature, setElectronicSignature] = useState("");
+  const [ipAddress, setIpAddress] = useState("Fetching IP...");
+  const [agreedDate, setAgreedDate] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -91,16 +66,34 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
       if (orderData) {
         setOrder(orderData);
-        setCustomerName(orderData.customers?.customer_name || "");
-        setCustomerPhone(orderData.customers?.phone || "");
-        setCustomerEmail(orderData.customers?.email || "");
-        setPickupFullAddress(orderData.pickup_location || "");
-        setDropoffFullAddress(orderData.dropoff_location || "");
-        setPickupContactName(orderData.pickup_contact_name || "");
-        setPickupContactPhone(orderData.pickup_contact_phone || "");
-        setDropoffContactName(orderData.dropoff_contact_name || "");
-        setDropoffContactPhone(orderData.dropoff_contact_phone || "");
-        if (orderData.form_submitted) setSubmitted(true);
+        // Pre-fill some data if available
+        const cName = orderData.customers?.customer_name || "";
+        const cParts = cName.split(" ");
+        setFirstName(cParts[0] || "");
+        setLastName(cParts.slice(1).join(" ") || "");
+        setEmail(orderData.customers?.email || "");
+        setPhone(orderData.customers?.phone || "");
+        
+        if (orderData.pickup_location) {
+          const pParts = orderData.pickup_location.split(", ");
+          if (pParts.length > 1) {
+            setOriginCity(pParts[pParts.length - 2] + ", " + pParts[pParts.length - 1]);
+            setOriginAddress(pParts.slice(0, pParts.length - 2).join(", "));
+          } else {
+            setOriginAddress(orderData.pickup_location);
+          }
+        }
+        if (orderData.dropoff_location) {
+          const dParts = orderData.dropoff_location.split(", ");
+          if (dParts.length > 1) {
+            setDestinationCity(dParts[dParts.length - 2] + ", " + dParts[dParts.length - 1]);
+            setDestinationAddress(dParts.slice(0, dParts.length - 2).join(", "));
+          } else {
+            setDestinationAddress(orderData.dropoff_location);
+          }
+        }
+
+        setPickupDate(orderData.est_pickup_date || "");
       }
 
       const { data: vehiclesData } = await supabase
@@ -110,134 +103,51 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
 
       if (vehiclesData) {
         setVehicles(vehiclesData);
-        const vins: Record<string, string> = {};
-        vehiclesData.forEach((v) => { vins[v.id] = v.vin || ""; });
-        setVehicleVins(vins);
       }
 
       setLoading(false);
     }
     fetchData();
+
+    // Fetch IP
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => setIpAddress(data.ip))
+      .catch(() => setIpAddress("Unavailable"));
+      
+    // Set Current Date string for the signature block once mounted
+    setAgreedDate(new Date().toString());
   }, [id]);
 
-  // Signature drawing
-  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    if ("touches" in e) {
-      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  // Handlers for Contact checkboxes
+  useEffect(() => {
+    if (isOriginContact) {
+      setOriginContactName(`${firstName} ${lastName}`.trim());
+      setOriginContactEmail(email);
+      setOriginContactPhone(phone);
+    } else {
+      setOriginContactName("");
+      setOriginContactEmail("");
+      setOriginContactPhone("");
     }
-    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top };
-  };
+  }, [isOriginContact, firstName, lastName, email, phone]);
 
-  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    setIsDrawing(true);
-    setHasSigned(true);
-    lastPos.current = getPos(e, canvas);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx || !lastPos.current) return;
-    const pos = getPos(e, canvas);
-    ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#00d0f0"; // Vibrant neon blue signature
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    lastPos.current = pos;
-  };
-
-  const stopDraw = () => {
-    setIsDrawing(false);
-    lastPos.current = null;
-  };
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (canvas && ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      setHasSigned(false);
+  useEffect(() => {
+    if (isDestinationContact) {
+      setDestinationContactName(`${firstName} ${lastName}`.trim());
+      setDestinationContactEmail(email);
+      setDestinationContactPhone(phone);
+    } else {
+      setDestinationContactName("");
+      setDestinationContactEmail("");
+      setDestinationContactPhone("");
     }
-  };
-
-  const handleSubmit = async () => {
-    if (!customerName.trim()) { setError("Please enter your name."); return; }
-    if (!termsAccepted) { setError("Please accept the Terms & Conditions."); return; }
-    if (!hasSigned) { setError("Please provide your digital signature."); return; }
-
-    setError(null);
-    setSubmitting(true);
-
-    const signatureData = canvasRef.current?.toDataURL("image/png") || "";
-
-    await supabase.from("orders").update({
-      pickup_location: pickupFullAddress,
-      dropoff_location: dropoffFullAddress,
-      pickup_contact_name: pickupContactName,
-      pickup_contact_phone: pickupContactPhone,
-      dropoff_contact_name: dropoffContactName,
-      dropoff_contact_phone: dropoffContactPhone,
-      customer_signature: signatureData,
-      signed_at: new Date().toISOString(),
-      terms_accepted: true,
-      form_submitted: true,
-    }).eq("id", id);
-
-    if (order?.customer_id) {
-      await supabase.from("customers").update({
-        customer_name: customerName,
-        phone: customerPhone,
-        email: customerEmail,
-      }).eq("id", order.customer_id);
-    }
-
-    for (const [vehicleId, vin] of Object.entries(vehicleVins)) {
-      if (vin) await supabase.from("order_vehicles").update({ vin }).eq("id", vehicleId);
-    }
-
-    setSubmitting(false);
-    setSubmitted(true);
-  };
-
-  const handlePrint = async () => {
-    if (!pdfRef.current) return;
-    setIsGeneratingPdf(true);
-    try {
-      pdfRef.current.style.display = 'block';
-      const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
-      pdfRef.current.style.display = 'none';
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Order_Agreement_${order.order_id}.pdf`);
-    } catch (err) {
-      console.error("PDF generation error:", err);
-      alert("Error generating PDF. Please try again.");
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
+  }, [isDestinationContact, firstName, lastName, email, phone]);
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanInput = authInput.trim().toLowerCase();
     const orderEmail = (order?.customers?.email || "").toLowerCase().trim();
-    
     const cleanPhoneInput = authInput.replace(/\D/g,'');
     const orderPhone = (order?.customers?.phone || "").replace(/\D/g,'');
 
@@ -251,423 +161,445 @@ export default function OrderFormPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  // ── UI Neon Light Theme Globals ──
-  const themeBg = "linear-gradient(135deg, #f8fafc 0%, #eef2f6 100%)";
-  const panelBg = "#ffffff";
-  const glassBorder = "1px solid rgba(0, 208, 240, 0.15)";
-  const glassShadow = "0 10px 40px -10px rgba(0, 208, 240, 0.08)";
-  const neonCyan = "#00d0f0"; // Vibrant neon cyan/blue
-  const neonBlue = "#0ea5e9";
-  const textPrimary = "#0f172a"; // Crisp Slate
-  const textSecondary = "#64748b"; // Muted Slate
+  const handleNext = () => setStep(s => Math.min(s + 1, 4));
+  const handlePrev = () => setStep(s => Math.max(s - 1, 1));
 
-  // ── Loading ──
-  if (loading) {
-    return (
-      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: neonBlue, display: "flex", alignItems: "center", gap: "12px", fontSize: "18px", fontWeight: 700 }}>
-          <Loader2 className="animate-spin" size={28} />
-          Loading Secure Portal…
-        </div>
-      </div>
-    );
-  }
 
-  if (!order) {
-    return (
-      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#ef4444", fontSize: "18px", fontWeight: 600 }}>Order not found. Please check your link.</div>
-      </div>
-    );
-  }
 
-  // ── Security Gate Screen ──
+  const handleSubmit = async () => {
+    if (!termsAccepted) {
+      setSubmitError("You must agree to the Terms & Conditions.");
+      return;
+    }
+    if (!electronicSignature.trim()) {
+      setSubmitError("Please provide your electronic signature.");
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const fullPickup = originCity ? `${originAddress}, ${originCity}` : originAddress;
+    const fullDropoff = destinationCity ? `${destinationAddress}, ${destinationCity}` : destinationAddress;
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    const { error: updateError } = await (supabase.from("orders") as any).update({
+      pickup_location: fullPickup,
+      dropoff_location: fullDropoff,
+      pickup_contact_name: originContactName,
+      pickup_contact_phone: originContactPhone,
+      dropoff_contact_name: destinationContactName,
+      dropoff_contact_phone: destinationContactPhone,
+      customer_signature: `IP: ${ipAddress} | Date: ${agreedDate} | Signed: ${electronicSignature}`,
+      signed_at: new Date().toISOString(),
+      terms_accepted: true,
+      form_submitted: true
+    }).eq("id", id);
+
+    if (updateError) {
+      console.error("Failed to update order:", updateError);
+      setSubmitError("Failed to save your agreement. Please try again or contact support.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (order?.customer_id) {
+      await (supabase.from("customers") as any).update({
+        customer_name: fullName,
+        phone: phone,
+        email: email,
+      }).eq("id", order.customer_id);
+    }
+
+
+    setSubmitting(false);
+    setSubmitted(true);
+  };
+
+  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f7f9" }}><Loader2 className="animate-spin text-blue-500" size={32} /></div>;
+  if (!order) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f7f9" }}><div className="text-red-500 text-lg">Order not found.</div></div>;
+
   if (!isAuthenticated && !submitted) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-        <div className="fade-in glass-panel" style={{ width: "100%", maxWidth: "440px", background: panelBg, border: glassBorder, borderRadius: "24px", padding: "48px 32px", boxShadow: glassShadow }}>
-          <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: `0 8px 20px rgba(0, 208, 240, 0.25)` }}>
-              <ShieldCheck size={32} color="#ffffff" />
-            </div>
-            <h1 style={{ color: textPrimary, fontSize: "28px", fontWeight: 850, marginBottom: "8px", letterSpacing: "-0.5px" }}>Secure Access</h1>
-            <p style={{ color: textSecondary, fontSize: "15px", lineHeight: "1.6" }}>
-              Verify your identity to view order <strong style={{color: neonBlue}}>{order.order_id}</strong>
-            </p>
-          </div>
-          
-          {authErrorMsg && (
-            <div className="fade-in" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
-              <AlertCircle size={18} /> {authErrorMsg}
-            </div>
-          )}
-
-          <form onSubmit={handleAuth}>
-            <div style={{ marginBottom: "28px" }}>
-              <label style={{ display: "block", color: textSecondary, fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>Email or Phone Number</label>
-              <input 
-                type="text" 
-                value={authInput}
-                onChange={(e) => setAuthInput(e.target.value)}
-                placeholder="Enter email or phone" 
-                required
-                className="neon-input"
-                style={{ width: "100%", padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "14px", color: textPrimary, fontSize: "16px", outline: "none", transition: "all 0.3s ease" }}
-              />
-            </div>
-            <button 
-              type="submit"
-              className="neon-btn hover-glow"
-              style={{ width: "100%", padding: "18px", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "16px", cursor: "pointer", transition: "all 0.3s ease", boxShadow: `0 8px 25px rgba(14, 165, 233, 0.3)` }}
-            >
-              Access My Order
-            </button>
-          </form>
-          <div style={{ textAlign: "center", color: textSecondary, fontSize: "13px", marginTop: "32px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-            <span style={{width:"8px", height:"8px", borderRadius:"50%", background:neonCyan, boxShadow:`0 0 8px ${neonCyan}`}}></span> Protected by Neon Auto Transport
+      <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "sans-serif" }}>
+        <div style={{ background: "#0a1128", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><div style={{ color: "#3b82f6", fontSize: "32px", fontWeight: 900, fontStyle: "italic", lineHeight: 1 }}>N</div><div style={{ marginTop: "6px" }}><div style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1 }}>eon</div><div style={{ fontSize: "10px", color: "#9ca3af", letterSpacing: "1px", textTransform: "uppercase", marginTop: "2px" }}>AUTO TRANSPORT</div></div></div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, fontSize: "14px" }}><Phone size={16} className="text-blue-500" />(571) 576-7711</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 60px)", padding: "16px" }}>
+          <div className="bg-white p-10 rounded-xl shadow-lg border border-gray-200 w-full max-w-md text-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white shadow-md"><User size={32} /></div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Authentication</h1>
+            <p className="text-gray-500 text-sm mb-6">Enter the email or phone number associated with quote #{order.order_id} to access your shipment portal.</p>
+            {authErrorMsg && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-6 flex items-center gap-2 border border-red-100"><AlertCircle size={16} /> {authErrorMsg}</div>}
+            <form onSubmit={handleAuth}>
+              <input type="text" value={authInput} onChange={(e) => setAuthInput(e.target.value)} placeholder="Email or Phone Number" required className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 transition-all" />
+              <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors">Verify Access</button>
+            </form>
           </div>
         </div>
-        <style>{`
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
-          .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-          .neon-input:focus { border-color: ${neonBlue} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px rgba(0,208,240,0.02) !important; }
-          .hover-glow:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(14, 165, 233, 0.45) !important; }
-        `}</style>
       </div>
     );
   }
 
-  // ── Success Screen ──
   if (submitted) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <style>{`
-          @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-          .slide-up { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-          .hover-scale:hover { transform: scale(1.02); }
-        `}</style>
-
-        {/* HIDDEN PDF TEMPLATE (Strictly White/Black for proper printing) */}
-        <div ref={pdfRef} style={{ display: 'none', position: 'absolute', top: '-9999px', left: 0, width: '800px', background: 'white', color: 'black', padding: '40px', fontFamily: 'sans-serif' }}>
-          <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: "20px", marginBottom: "20px" }}>
-            <h1 style={{ fontSize: "24px", margin: "0 0 10px 0" }}>NEON AUTO TRANSPORT</h1>
-            <p style={{ margin: 0, color: "#444" }}>Licensed & Insured Auto Carrier · (571) 576-7711</p>
-          </div>
-          <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "30px" }}>VEHICLE TRANSPORT AGREEMENT - ORDER #{order.order_id}</h2>
-          
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px" }}>
-            <div style={{ width: "48%" }}>
-              <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Customer Details</h3>
-              <p style={{ margin: "5px 0" }}><strong>Name:</strong> {customerName}</p>
-              <p style={{ margin: "5px 0" }}><strong>Phone:</strong> {customerPhone}</p>
-              <p style={{ margin: "5px 0" }}><strong>Email:</strong> {customerEmail}</p>
-              <p style={{ margin: "5px 0" }}><strong>Price:</strong> ${order.customer_price || 0}</p>
-            </div>
-            <div style={{ width: "48%" }}>
-              <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Route</h3>
-              <p style={{ margin: "5px 0" }}><strong>Pickup:</strong> {pickupFullAddress}</p>
-              <p style={{ margin: "5px 0" }}><strong>Dropoff:</strong> {dropoffFullAddress}</p>
-            </div>
-          </div>
-
-          <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Vehicles</h3>
-          <ul style={{ marginBottom: "30px" }}>
-            {vehicles.map((v, i) => (
-              <li key={i} style={{ margin: "5px 0" }}>{v.year} {v.make} {v.model} {v.is_operable ? "(Operable)" : "(Inoperable)"} - VIN: {v.vin || "Not Provided"}</li>
-            ))}
-          </ul>
-
-          <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "10px" }}>Terms & Conditions</h3>
-          <p style={{ fontSize: "10px", lineHeight: "1.4", color: "#333", whiteSpace: "pre-wrap", marginBottom: "40px" }}>{TERMS}</p>
-
-          <div style={{ borderTop: "2px solid #000", paddingTop: "20px" }}>
-            <p style={{ marginBottom: "20px" }}><strong>Electronic Signature:</strong> I have read and agree to the Terms & Conditions.</p>
-            <img src={order.customer_signature || ""} style={{ maxWidth: "300px", borderBottom: "1px solid #000" }} />
-            <p style={{ marginTop: "10px" }}>Signed by: {customerName}</p>
-            <p style={{ margin: "5px 0" }}>Date: {new Date(order.signed_at || new Date()).toLocaleString()}</p>
-          </div>
-        </div>
-        {/* END HIDDEN PDF TEMPLATE */}
-
-        <div className="slide-up" style={{ maxWidth: "600px", width: "100%" }}>
-          <div style={{ background: panelBg, border: glassBorder, borderRadius: "24px", padding: "48px 32px", textAlign: "center", boxShadow: glassShadow, marginBottom: "24px" }}>
-            <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: `rgba(34, 197, 94, 0.08)`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: `0 8px 20px rgba(34, 197, 94, 0.15)` }}>
-              <CheckCircle size={48} color="#22c55e" />
-            </div>
-            <h1 style={{ color: "#22c55e", fontSize: "32px", fontWeight: 800, marginBottom: "12px" }}>Order Confirmed!</h1>
-            <p style={{ color: textSecondary, fontSize: "16px", marginBottom: "32px", lineHeight: "1.6" }}>
-              Thank you, <strong style={{ color: textPrimary }}>{customerName}</strong>.<br/>
-              Your transport agreement for <strong style={{ color: neonBlue }}>{order.order_id}</strong> is secure.
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", textAlign: "left", background: "#f8fafc", borderRadius: "16px", padding: "24px", border: "1px solid #cbd5e1" }}>
-              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Route</div><div style={{ color: textPrimary, fontSize: "14px", fontWeight: 700 }}>{pickupFullAddress.split(',')[0]} → {dropoffFullAddress.split(',')[0]}</div></div>
-              <div><div style={{ color: textSecondary, fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>Agreed Rate</div><div style={{ color: neonBlue, fontWeight: 800, fontSize: "18px" }}>${order.customer_price || 0}</div></div>
-            </div>
-          </div>
-
-          <div className="slide-up" style={{ display: "flex", flexDirection: "column", gap: "16px", animationDelay: "0.2s" }}>
-            <button 
-              onClick={handlePrint} 
-              disabled={isGeneratingPdf}
-              className="hover-scale"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "20px", background: isGeneratingPdf ? "#94a3b8" : `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "16px", cursor: isGeneratingPdf ? "not-allowed" : "pointer", transition: "all 0.3s ease", boxShadow: isGeneratingPdf ? "none" : `0 8px 25px rgba(14, 165, 233, 0.35)` }}
+      <div style={{ minHeight: "100vh", background: "#f4f7f9", padding: "40px 16px", fontFamily: "sans-serif" }}>
+        <div className="max-w-2xl mx-auto bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle size={40} className="text-green-600" /></div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Shipment Booked!</h1>
+          <p className="text-gray-600 text-lg mb-8">Thank you, {firstName}. Your transport agreement for Quote #{order.order_id} has been submitted successfully.</p>
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={() => generatePDF({
+                order,
+                vehicles,
+                fullName: `${firstName} ${lastName}`.trim(),
+                email,
+                phone,
+                pickupDate,
+                originAddress,
+                originCity,
+                originContactName,
+                originContactEmail,
+                originContactPhone,
+                destinationAddress,
+                destinationCity,
+                destinationContactName,
+                destinationContactEmail,
+                destinationContactPhone,
+                electronicSignature,
+                ipAddress,
+                agreedDate
+              })}
+              className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-lg shadow-md transition-colors text-lg"
             >
-              {isGeneratingPdf ? <><Loader2 size={20} className="animate-spin" /> Generating PDF...</> : <><Download size={20} /> Download Official Agreement</>}
+              <Download size={22} />
+              Download Shipment Agreement PDF
             </button>
-            <button 
-              onClick={() => setSubmitted(false)} 
-              className="hover-scale"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", width: "100%", padding: "18px", background: "#ffffff", color: textSecondary, border: "1px solid #cbd5e1", borderRadius: "16px", fontWeight: 700, fontSize: "15px", cursor: "pointer", transition: "all 0.3s ease" }}
-            >
-              <ChevronLeft size={18} /> Edit Submission
-            </button>
+            <p className="text-gray-400 text-sm">Your signed agreement is ready to download.</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Main Form ──
-  const inputStyle = {
-    width: "100%",
-    padding: "16px",
-    background: "#f8fafc",
-    border: "1px solid #cbd5e1",
-    borderRadius: "14px",
-    color: textPrimary,
-    fontSize: "15px",
-    outline: "none",
-    boxSizing: "border-box" as const,
-    transition: "all 0.3s ease",
-  };
-
-  const labelStyle = { display: "block", color: textSecondary, fontSize: "12px", fontWeight: 750, textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "8px" };
-
-  const sectionStyle = {
-    background: panelBg,
-    border: glassBorder,
-    borderRadius: "24px",
-    padding: "32px",
-    marginBottom: "24px",
-    boxShadow: glassShadow,
-  };
-
-  const sectionHeaderStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    marginBottom: "28px",
-    paddingBottom: "16px",
-    borderBottom: "1px solid #e2e8f0",
-  };
+  const steps = ["Order Info", "Origin", "Destination", "Terms & Condition"];
+  const expirationDate = new Date();
+  expirationDate.setDate(expirationDate.getDate() + 7);
 
   return (
-    <>
-      <style>{`
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
-        input:focus, textarea:focus { border-color: ${neonBlue} !important; box-shadow: 0 0 0 4px ${neonCyan}20, inset 0 0 10px rgba(0,208,240,0.02) !important; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
-        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-      `}</style>
-
-      <div style={{ width: "100%", minHeight: "100vh", background: themeBg, padding: "40px 20px 100px", overflowX: "hidden" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-
-          {/* ── Header ── */}
-          <div className="fade-up" style={{ textAlign: "center", marginBottom: "48px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "16px", marginBottom: "24px", padding: "12px 24px", background: "rgba(0, 208, 240, 0.05)", border: "1px solid rgba(0, 208, 240, 0.15)", borderRadius: "100px", boxShadow: `0 4px 15px rgba(0, 208, 240, 0.08)` }}>
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Truck size={18} color="#ffffff" />
-              </div>
-              <div style={{ color: neonBlue, fontWeight: 850, fontSize: "16px", letterSpacing: "3px" }}>NEON AUTO TRANSPORT</div>
-            </div>
-            <h1 style={{ color: textPrimary, fontSize: "40px", fontWeight: 900, marginBottom: "16px", letterSpacing: "-1px" }}>
-              Order Confirmation
-            </h1>
-            <div style={{ color: textSecondary, fontSize: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-              Order <span style={{ color: neonBlue, fontWeight: 700, padding: "4px 10px", background: "rgba(14, 165, 233, 0.08)", borderRadius: "6px" }}>#{order.order_id}</span>
-            </div>
+    <div ref={formRef} style={{ minHeight: "100vh", background: "#f4f7f9", fontFamily: "sans-serif", color: "#333" }}>
+      <div style={{ background: "#ffffff", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <div style={{ color: "#3b82f6", fontSize: "32px", fontWeight: 900, fontStyle: "italic", lineHeight: 1 }}>N</div>
+          <div style={{ marginTop: "6px" }}>
+            <div style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1, color: "#0a1128" }}>eon</div>
+            <div style={{ fontSize: "10px", color: "#9ca3af", letterSpacing: "1px", textTransform: "uppercase", marginTop: "2px" }}>AUTO TRANSPORT</div>
           </div>
-
-          {/* ── Customer Info ── */}
-          <div className="fade-up delay-1" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
-                <User size={20} color={neonBlue} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "24px", fontSize: "14px" }}>
+          <a href="tel:+15715767711" style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, color: "#0a1128", textDecoration: "none" }}><Phone size={16} className="text-blue-500" />(571) 576-7711</a>
+          <a href="mailto:info@neonautotransport.com" style={{ border: "1px solid #e2e8f0", padding: "8px 16px", color: "#0a1128", textDecoration: "none", borderRadius: "4px" }}><Mail size={14} className="inline mr-2" /> E-Mail Us</a>
+        </div>
+      </div>
+      
+      <div style={{ background: "#f0f8ff", padding: "40px", display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e2e8f0" }}>
+        <div>
+          <h1 style={{ fontSize: "32px", fontWeight: 700, color: "#0a1128", marginBottom: "12px" }}>Book My Shipment</h1>
+          <p style={{ color: "#4b5563", marginBottom: "32px", fontSize: "16px" }}>Fill out the form below to book your transportation order</p>
+          <div style={{ display: "inline-flex", background: "#fff", alignItems: "center", border: "1px solid #e2e8f0" }}>
+            {steps.map((s, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ padding: "12px 24px", background: step === idx + 1 ? "#2563eb" : "transparent", color: step === idx + 1 ? "#fff" : "#4b5563", fontSize: "14px", fontWeight: step === idx + 1 ? 600 : 400 }}>{s}</div>
+                {idx < steps.length - 1 && <div style={{ color: "#d1d5db", padding: "0 8px" }}><ChevronRight size={16} /></div>}
               </div>
-              <div>
-                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Your Information</div>
-                <div style={{ color: textSecondary, fontSize: "13px" }}>Review and update if needed</div>
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Full Name *</label>
-                <input style={inputStyle} value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Your full name" />
-              </div>
-              <div>
-                <label style={labelStyle}>Phone Number</label>
-                <input style={inputStyle} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="(555) 000-0000" />
-              </div>
-              <div>
-                <label style={labelStyle}>Email Address</label>
-                <input style={inputStyle} value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="you@email.com" />
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* ── Vehicle Info ── */}
-          <div className="fade-up delay-2" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
-                <Car size={20} color={neonBlue} />
-              </div>
-              <div>
-                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Vehicle Details</div>
-                <div style={{ color: textSecondary, fontSize: "13px" }}>Verify your vehicles and provide VINs</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {vehicles.map((v, i) => (
-                <div key={v.id} style={{ padding: "20px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-                  <div>
-                    <div style={{ color: textPrimary, fontWeight: 800, fontSize: "16px", marginBottom: "8px" }}>
-                      {v.year} {v.make} {v.model}
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: v.is_operable ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)", color: v.is_operable ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
-                        {v.is_operable ? "Operable" : "Inoperable"}
-                      </span>
-                      <span style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: "rgba(148,163,184,0.1)", color: textSecondary, fontWeight: 700 }}>
-                        {v.type || "Open"}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ flex: "1", minWidth: "250px", maxWidth: "350px" }}>
-                    <label style={{ ...labelStyle, fontSize: "11px", marginBottom: "4px" }}>Vehicle VIN (Optional)</label>
-                    <input 
-                      style={{ ...inputStyle, background: "#ffffff", padding: "12px", fontSize: "14px", fontFamily: "monospace" }} 
-                      value={vehicleVins[v.id] || ""} 
-                      onChange={e => setVehicleVins(prev => ({...prev, [v.id]: e.target.value}))} 
-                      placeholder="17-Digit VIN" 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+        </div>
+        <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div>
+            <div style={{ fontSize: "12px", color: "#6b7280", textTransform: "uppercase", fontWeight: 600, letterSpacing: "1px", marginBottom: "4px" }}>QUOTE</div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#0a1128", borderBottom: "1px solid #0a1128", paddingBottom: "4px", display: "inline-block" }}>#{order.order_id}</div>
           </div>
-
-          {/* ── Route & Contacts ── */}
-          <div className="fade-up delay-3" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
-                <MapPin size={20} color={neonBlue} />
-              </div>
-              <div>
-                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Route & Contacts</div>
-                <div style={{ color: textSecondary, fontSize: "13px" }}>Where are we shipping to?</div>
-              </div>
-            </div>
-            
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-              {/* Pickup */}
-              <div style={{ paddingRight: "16px", borderRight: "1px solid #e2e8f0" }}>
-                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:`0 0 10px ${neonBlue}`}}></div> Origin / Pickup</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, background: "#ffffff", minHeight: "80px", resize: "none"}} value={pickupFullAddress} onChange={e => setPickupFullAddress(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Name</label><input style={{...inputStyle, background: "#ffffff"}} value={pickupContactName} onChange={e => setPickupContactName(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Phone</label><input style={{...inputStyle, background: "#ffffff"}} value={pickupContactPhone} onChange={e => setPickupContactPhone(e.target.value)} /></div>
-                </div>
-              </div>
-
-              {/* Dropoff */}
-              <div>
-                <div style={{ color: neonBlue, fontWeight: 800, fontSize: "15px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}><div style={{width:"8px",height:"8px",borderRadius:"50%",background:neonBlue,boxShadow:`0 0 10px ${neonBlue}`}}></div> Destination / Dropoff</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div><label style={labelStyle}>Full Address</label><textarea style={{...inputStyle, background: "#ffffff", minHeight: "80px", resize: "none"}} value={dropoffFullAddress} onChange={e => setDropoffFullAddress(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Name</label><input style={{...inputStyle, background: "#ffffff"}} value={dropoffContactName} onChange={e => setDropoffContactName(e.target.value)} /></div>
-                  <div><label style={labelStyle}>Contact Phone</label><input style={{...inputStyle, background: "#ffffff"}} value={dropoffContactPhone} onChange={e => setDropoffContactPhone(e.target.value)} /></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Terms & Signature ── */}
-          <div className="fade-up delay-4" style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(0, 208, 240, 0.08)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px rgba(0, 208, 240, 0.12)` }}>
-                <PenLine size={20} color={neonBlue} />
-              </div>
-              <div>
-                <div style={{ color: textPrimary, fontWeight: 800, fontSize: "18px" }}>Terms & Signature</div>
-                <div style={{ color: textSecondary, fontSize: "13px" }}>Please read and sign below</div>
-              </div>
-            </div>
-
-            <div style={{ background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "16px", padding: "24px", height: "240px", overflowY: "auto", marginBottom: "24px", color: textSecondary, fontSize: "13px", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
-              {TERMS}
-            </div>
-
-            <label style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", marginBottom: "32px", padding: "16px", background: termsAccepted ? "rgba(0,208,240,0.03)" : "transparent", border: `1px solid ${termsAccepted ? "rgba(0,208,240,0.3)" : "#cbd5e1"}`, borderRadius: "14px", transition: "all 0.3s ease" }}>
-              <input 
-                type="checkbox" 
-                checked={termsAccepted} 
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                style={{ width: "20px", height: "20px", accentColor: neonBlue, cursor: "pointer" }}
-              />
-              <span style={{ color: textPrimary, fontWeight: 600, fontSize: "14px" }}>I have read and agree to the Terms & Conditions</span>
-            </label>
-
-            <div style={{ marginBottom: "32px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <label style={{ ...labelStyle, marginBottom: 0 }}>Draw Your Signature</label>
-                <button type="button" onClick={clearSignature} style={{ background: "transparent", border: "none", color: neonBlue, fontSize: "12px", fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}>
-                  Clear
-                </button>
-              </div>
-              <div style={{ borderRadius: "16px", overflow: "hidden", border: `2px solid ${hasSigned ? neonBlue : "#cbd5e1"}`, transition: "border-color 0.3s ease", boxShadow: hasSigned ? `0 4px 15px rgba(0,208,240,0.08)` : "none" }}>
-                <canvas 
-                  ref={canvasRef}
-                  width={900}
-                  height={180}
-                  style={{ display: "block", background: "#f8fafc", cursor: "crosshair", width: "100%", touchAction: "none" }}
-                  onMouseDown={startDraw}
-                  onMouseMove={draw}
-                  onMouseUp={stopDraw}
-                  onMouseLeave={stopDraw}
-                  onTouchStart={startDraw}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDraw}
-                />
-              </div>
-              {!hasSigned && <div style={{ color: textSecondary, fontSize: "12px", marginTop: "8px", textAlign: "center" }}>Sign within the box above</div>}
-            </div>
-
-            {error && (
-              <div className="fade-in" style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "12px", padding: "16px", marginBottom: "24px", color: "#ef4444", fontSize: "14px", display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
-                <AlertCircle size={18} /> {error}
-              </div>
-            )}
-
-            <button 
-              onClick={handleSubmit} 
-              disabled={submitting || !termsAccepted || !hasSigned}
-              style={{ width: "100%", padding: "20px", background: (submitting || !termsAccepted || !hasSigned) ? "#cbd5e1" : `linear-gradient(135deg, ${neonCyan}, ${neonBlue})`, color: "#ffffff", border: "none", borderRadius: "16px", fontWeight: 800, fontSize: "18px", cursor: (submitting || !termsAccepted || !hasSigned) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", transition: "all 0.3s ease", boxShadow: (submitting || !termsAccepted || !hasSigned) ? "none" : `0 8px 25px rgba(14, 165, 233, 0.3)` }}
-            >
-              {submitting ? <><Loader2 size={24} className="animate-spin" /> Submitting...</> : <><CheckCircle size={24} /> Submit & Sign Agreement</>}
-            </button>
+          <div>
+            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: 500, marginBottom: "4px" }}>Price Expiration Date</div>
+            <div style={{ fontSize: "18px", color: "#0a1128", fontWeight: 500 }}>{expirationDate.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })}</div>
           </div>
         </div>
       </div>
-    </>
+
+      <div style={{ padding: "60px 40px", display: "flex", gap: "60px", maxWidth: "1200px", margin: "0 auto", background: "#fff" }}>
+        
+        {/* LEFT COLUMN - FORM STEPS */}
+        <div style={{ flex: 1 }}>
+            {step === 1 && (
+              <div>
+                <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "32px", letterSpacing: "0.5px" }}>CONTACT INFO</h2>
+                
+                <div style={{ position: "relative", marginBottom: "24px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>First Name</label>
+                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                
+                <div style={{ position: "relative", marginBottom: "12px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Last Name</label>
+                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "32px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                  <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Company
+                </div>
+                
+                <div style={{ position: "relative", marginBottom: "12px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Email</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "32px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                  <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Email
+                </div>
+
+                <div style={{ position: "relative", marginBottom: "12px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Phone</label>
+                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "32px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                  <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Phone
+                </div>
+
+                <div style={{ position: "relative", marginBottom: "40px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>First Available Pickup Date</label>
+                  <input type="text" value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                
+                <div className="flex justify-end">
+                  <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center transition-colors font-semibold shadow-md" style={{ height: "64px" }}>
+                    <span className="px-8 text-xl font-bold">Next</span>
+                    <div className="h-full px-6 flex items-center justify-center bg-blue-400" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                      <ChevronRight size={24} className="font-bold" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {step === 2 && (
+              <div>
+                <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.5px" }}>ORIGIN</h2>
+                <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "32px" }}>This is the pickup location.</p>
+                
+                <div style={{ position: "relative", marginBottom: "12px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: originAddress ? 1 : 0 }}>Origin Address</label>
+                  <input type="text" placeholder="Origin Address" value={originAddress} onChange={e => setOriginAddress(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "24px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                  <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Address Line
+                </div>
+                
+                <div style={{ position: "relative", marginBottom: "40px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Origin City</label>
+                  <input type="text" value={originCity} onChange={e => setOriginCity(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg bg-blue-50" />
+                </div>
+
+                <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.5px" }}>ORIGIN CONTACT</h2>
+                <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "24px" }}>This is the person that we will contact on the day of the pickup to make arrangements.</p>
+
+                <label className="flex items-center mb-6 cursor-pointer">
+                  <input type="checkbox" checked={isOriginContact} onChange={e => setIsOriginContact(e.target.checked)} className="mr-3 w-5 h-5 text-blue-600 rounded border-gray-300" />
+                  <span style={{ color: "#4b5563", fontSize: "16px" }}>I Am The Pickup Contact</span>
+                </label>
+
+                <div style={{ position: "relative", marginBottom: "24px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: originContactName ? 1 : 0 }}>Origin Contact Name</label>
+                  <input type="text" placeholder="Origin Contact Name" value={originContactName} onChange={e => setOriginContactName(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+
+                <div style={{ position: "relative", marginBottom: "24px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: originContactEmail ? 1 : 0 }}>Origin Contact Email</label>
+                  <input type="email" placeholder="Origin Contact Email" value={originContactEmail} onChange={e => setOriginContactEmail(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+
+                <div style={{ position: "relative", marginBottom: "12px" }}>
+                  <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: originContactPhone ? 1 : 0 }}>Origin Contact Phone</label>
+                  <input type="tel" placeholder="Origin Contact Phone" value={originContactPhone} onChange={e => setOriginContactPhone(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                </div>
+                <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "40px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                  <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Phone
+                </div>
+                
+                <div className="flex justify-between items-end">
+                  <button onClick={handlePrev} className="bg-white text-gray-800 flex items-center transition-colors text-xl pb-2 border-b border-gray-300 hover:border-gray-500" style={{ paddingLeft: "8px", paddingRight: "32px", height: "48px" }}>
+                    <ChevronLeft size={20} className="mr-4 font-bold" />
+                    Previous
+                  </button>
+                  <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center transition-colors font-semibold shadow-md" style={{ height: "64px" }}>
+                    <span className="px-8 text-xl font-bold">Next</span>
+                    <div className="h-full px-6 flex items-center justify-center bg-blue-400" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                      <ChevronRight size={24} className="font-bold" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {step === 3 && (
+               <div>
+                 <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.5px" }}>DESTINATION</h2>
+                 <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "32px" }}>This is the delivery location.</p>
+                 
+                 <div style={{ position: "relative", marginBottom: "12px" }}>
+                   <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: destinationAddress ? 1 : 0 }}>Destination Address</label>
+                   <input type="text" placeholder="Destination Address" value={destinationAddress} onChange={e => setDestinationAddress(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                 </div>
+                 <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "24px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                   <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Address Line
+                 </div>
+                 
+                 <div style={{ position: "relative", marginBottom: "40px" }}>
+                   <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Destination City</label>
+                   <input type="text" value={destinationCity} onChange={e => setDestinationCity(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg bg-blue-50" />
+                 </div>
+ 
+                 <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.5px" }}>DESTINATION CONTACT</h2>
+                 <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "24px" }}>This is the person that we will contact on the day of the delivery to make arrangements.</p>
+ 
+                 <label className="flex items-center mb-6 cursor-pointer">
+                   <input type="checkbox" checked={isDestinationContact} onChange={e => setIsDestinationContact(e.target.checked)} className="mr-3 w-5 h-5 text-blue-600 rounded border-gray-300" />
+                   <span style={{ color: "#4b5563", fontSize: "16px" }}>I Am The Delivery Contact</span>
+                 </label>
+ 
+                 <div style={{ position: "relative", marginBottom: "24px" }}>
+                   <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: destinationContactName ? 1 : 0 }}>Destination Contact Name</label>
+                   <input type="text" placeholder="Destination Contact Name" value={destinationContactName} onChange={e => setDestinationContactName(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                 </div>
+ 
+                 <div style={{ position: "relative", marginBottom: "24px" }}>
+                   <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: destinationContactEmail ? 1 : 0 }}>Destination Contact Email</label>
+                   <input type="email" placeholder="Destination Contact Email" value={destinationContactEmail} onChange={e => setDestinationContactEmail(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                 </div>
+ 
+                 <div style={{ position: "relative", marginBottom: "12px" }}>
+                   <label style={{ position: "absolute", top: "-10px", left: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280", opacity: destinationContactPhone ? 1 : 0 }}>Destination Contact Phone</label>
+                   <input type="tel" placeholder="Destination Contact Phone" value={destinationContactPhone} onChange={e => setDestinationContactPhone(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                 </div>
+                 <div style={{ color: "#3b82f6", fontSize: "13px", fontWeight: 500, marginBottom: "40px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                   <div style={{ background: "#3b82f6", color: "#fff", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold" }}>+</div> Add Another Phone
+                 </div>
+                 
+                 <div className="flex justify-between items-end">
+                  <button onClick={handlePrev} className="bg-white text-gray-800 flex items-center transition-colors text-xl pb-2 border-b border-gray-300 hover:border-gray-500" style={{ paddingLeft: "8px", paddingRight: "32px", height: "48px" }}>
+                    <ChevronLeft size={20} className="mr-4 font-bold" />
+                    Previous
+                  </button>
+                  <button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center transition-colors font-semibold shadow-md" style={{ height: "64px" }}>
+                    <span className="px-8 text-xl font-bold">Next</span>
+                    <div className="h-full px-6 flex items-center justify-center bg-blue-400" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                      <ChevronRight size={24} className="font-bold" />
+                    </div>
+                  </button>
+                </div>
+               </div>
+            )}
+            
+            {step === 4 && (
+              <div>
+                <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "16px", letterSpacing: "0.5px" }}>ACCEPTANCE</h2>
+                
+                <p style={{ color: "#6b7280", fontSize: "14px", lineHeight: 1.6, marginBottom: "32px" }}>
+                  <span style={{ color: "#ef4444" }}>*</span>By selecting "I Agree" and entering my full name as a binding electronic signature, I understand that an electronic signature has the same legal effect and can be enforced in the same way as a written signature. Furthermore, I hereby accept terms and conditions of service as described in the "Terms &amp; Conditions" section below.
+                </p>
+
+                <div style={{ background: "#f8fafc", padding: "0 0 24px 0", marginBottom: "32px", display: "flex", flexDirection: "column" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "stretch", marginBottom: "16px" }}>
+                    <h3 style={{ fontSize: "28px", color: "#2563eb", fontWeight: 700, padding: "24px 24px 0 24px", margin: 0 }}>Terms &amp; Conditions</h3>
+                    <div style={{ width: "24px", background: "#2563eb" }}></div>
+                  </div>
+                  <div style={{ color: "#4b5563", fontSize: "13px", lineHeight: 1.6, padding: "0 24px", whiteSpace: "pre-wrap", maxHeight: "250px", overflowY: "auto" }}>
+                    {TERMS}
+                  </div>
+                </div>
+                
+                <div className="mb-8">
+                  <label className="flex items-center mb-6 cursor-pointer">
+                    <input type="checkbox" checked={termsAccepted} onChange={e=>setTermsAccepted(e.target.checked)} className="mr-3 w-6 h-6 text-blue-600 rounded border-gray-300" /> 
+                    <span style={{ color: "#0a1128", fontSize: "18px", fontWeight: 400 }}>I Agree</span>
+                  </label>
+                  
+                  <div style={{ marginBottom: "24px" }}>
+                    <input type="text" placeholder="Electronic signature (Your full name)*" value={electronicSignature} onChange={e=>setElectronicSignature(e.target.value)} className="w-full border border-gray-200 p-4 focus:outline-none focus:border-blue-500 transition-colors text-lg" />
+                  </div>
+
+                  <div style={{ position: "relative", marginBottom: "24px" }}>
+                    <label style={{ position: "absolute", top: "-10px", right: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Your IP address</label>
+                    <input type="text" readOnly value={ipAddress} className="w-full border border-gray-200 p-4 text-lg bg-white" style={{ outline: "none" }} />
+                  </div>
+
+                  <div style={{ position: "relative", marginBottom: "40px" }}>
+                    <label style={{ position: "absolute", top: "-10px", right: "12px", background: "#fff", padding: "0 4px", fontSize: "12px", color: "#6b7280" }}>Agreed to terms on this day</label>
+                    <input type="text" readOnly value={agreedDate} className="w-full border border-gray-200 p-4 text-lg bg-white" style={{ outline: "none" }} />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-end">
+                  <button onClick={handlePrev} className="bg-white text-gray-800 flex items-center transition-colors text-xl pb-2 border-b border-gray-300 hover:border-gray-500" style={{ paddingLeft: "8px", paddingRight: "32px", height: "48px" }}>
+                    <ChevronLeft size={20} className="mr-4 font-bold" />
+                    Previous
+                  </button>
+                  <button onClick={handleSubmit} disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center transition-colors font-semibold shadow-md" style={{ height: "64px" }}>
+                    <span className="px-8 text-xl font-bold">{submitting ? "Submitting..." : "Book My Order"}</span>
+                    {!submitting && (
+                      <div className="h-full px-6 flex items-center justify-center bg-blue-400" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                        <ChevronRight size={24} className="font-bold" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+                {submitError && <div className="text-red-500 mt-4 p-3 bg-red-50 rounded border border-red-100 text-right">{submitError}</div>}
+              </div>
+            )}
+        </div>
+
+        {/* RIGHT COLUMN - PRICE SUMMARY & CARGO */}
+        <div style={{ width: "380px", flexShrink: 0 }}>
+          <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginBottom: "16px", letterSpacing: "0.5px" }}>PRICE</h2>
+          
+          <div style={{ background: "#f8fafc", padding: "32px", borderTop: "4px solid #3b82f6" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+              <span style={{ fontSize: "20px", fontWeight: 700, color: "#0a1128" }}>Total tariff</span>
+              <span style={{ fontSize: "22px", fontWeight: 700, color: "#0a1128" }}>${order?.customer_price ? `${order.customer_price}.00` : "0.00"}</span>
+            </div>
+            
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "24px", marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: "#4b5563", fontSize: "15px" }}>Payment Method</span>
+              <span style={{ color: "#0a1128", fontSize: "15px", fontWeight: 500 }}>{order?.payment_method || "Not Specified"}</span>
+            </div>
+
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: "#4b5563", fontSize: "15px" }}>Payment Timing</span>
+              <span style={{ color: "#0a1128", fontSize: "15px", fontWeight: 500 }}>{order?.payment_timing || "Not Specified"}</span>
+            </div>
+          </div>
+
+          <h2 style={{ fontSize: "18px", color: "#1f2937", textTransform: "uppercase", marginTop: "40px", marginBottom: "16px", letterSpacing: "0.5px" }}>CARGO</h2>
+          
+          <div style={{ background: "#f8fafc", padding: "32px", borderTop: "4px solid #0a1128" }}>
+            {vehicles.map((v, i) => (
+              <div key={v.id} style={{ marginBottom: i < vehicles.length - 1 ? "32px" : "0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", paddingBottom: "24px", marginBottom: "24px" }}>
+                  <span style={{ color: "#4b5563", fontSize: "15px" }}>Transport Type:</span>
+                  <span style={{ background: "#e2e8f0", color: "#0a1128", padding: "6px 16px", fontWeight: 600, fontSize: "14px" }}>{v.trailer_type || "Open"}</span>
+                </div>
+                <div>
+                  <span style={{ color: "#0a1128", fontSize: "16px", fontWeight: 500, display: "block", marginBottom: "4px" }}>Cargo:</span>
+                  <span style={{ color: "#4b5563", fontSize: "15px" }}>{v.year} {v.make} {v.model}</span>
+                </div>
+              </div>
+            ))}
+            {vehicles.length === 0 && (
+              <div style={{ color: "#6b7280", fontSize: "15px" }}>No vehicles listed.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
