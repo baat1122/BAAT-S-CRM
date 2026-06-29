@@ -9,11 +9,7 @@ import Link from 'next/link';
 export function Header() {
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'New Quote Requested', time: '10 mins ago', read: false },
-    { id: 2, title: 'Payment Received', time: '1 hour ago', read: false },
-    { id: 3, title: 'Carrier Assigned', time: '2 hours ago', read: false },
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Global Search State
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,13 +20,184 @@ export function Header() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+  const markAsRead = (id: any) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
+
+  // 1. Load initial notifications & ask permission
+  useEffect(() => {
+    const saved = localStorage.getItem('crm_notifications');
+    if (saved) {
+      try {
+        setNotifications(JSON.parse(saved));
+      } catch (e) {
+        setNotifications([
+          { id: '1', title: 'New Quote Requested', body: 'Demo: Quote request loaded', time: new Date().toISOString(), read: false },
+        ]);
+      }
+    } else {
+      setNotifications([
+        { id: '1', title: 'New Quote Requested', body: 'Welcome to Best American CRM! Real-time notifications are enabled.', time: new Date().toISOString(), read: false },
+      ]);
+    }
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  // 2. Save notifications to localStorage when updated
+  useEffect(() => {
+    if (notifications.length > 0) {
+      localStorage.setItem('crm_notifications', JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  // 3. Desktop push notifier
+  const showDesktopNotification = (title: string, body: string, url?: string) => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const notification = new Notification(title, {
+        body,
+        icon: '/icon.png',
+      });
+      if (url) {
+        notification.onclick = () => {
+          window.focus();
+          router.push(url);
+        };
+      }
+    }
+  };
+
+  // 4. Set up Supabase Realtime Listeners
+  useEffect(() => {
+    // 1. Listen to new leads
+    const leadSub = supabase
+      .channel('realtime_leads_notification')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'leads' },
+        (payload) => {
+          const newLead = payload.new;
+          const title = 'New Lead Created';
+          const body = `${newLead.customer_name} requested a quote for ${newLead.vehicle_name || 'Vehicle'} from ${newLead.pickup_location} to ${newLead.dropoff_location}`;
+          const link = `/leads/${newLead.id}`;
+          
+          setNotifications(prev => [
+            {
+              id: `lead-${newLead.id}-${Date.now()}`,
+              title,
+              body,
+              time: new Date().toISOString(),
+              read: false,
+              url: link
+            },
+            ...prev
+          ]);
+          showDesktopNotification(title, body, link);
+        }
+      )
+      .subscribe();
+
+    // 2. Listen to new orders
+    const orderSub = supabase
+      .channel('realtime_orders_notification')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => {
+          const newOrder = payload.new;
+          const title = 'New Order Placed';
+          const body = `Order #${newOrder.custom_order_id || newOrder.id.split('-')[0].toUpperCase()} created for ${newOrder.vehicle_name || 'Vehicle'}`;
+          const link = `/orders/${newOrder.id}`;
+
+          setNotifications(prev => [
+            {
+              id: `order-ins-${newOrder.id}-${Date.now()}`,
+              title,
+              body,
+              time: new Date().toISOString(),
+              read: false,
+              url: link
+            },
+            ...prev
+          ]);
+          showDesktopNotification(title, body, link);
+        }
+      )
+      // 3. Listen to order updates
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders' },
+        (payload) => {
+          const oldOrder = payload.old;
+          const newOrder = payload.new;
+          
+          let title = 'Order Updated';
+          let body = `Order #${newOrder.custom_order_id || newOrder.id.split('-')[0].toUpperCase()} was updated.`;
+
+          if (oldOrder.status !== newOrder.status) {
+            title = 'Order Status Updated';
+            body = `Order #${newOrder.custom_order_id || newOrder.id.split('-')[0].toUpperCase()} status changed to ${newOrder.status}`;
+          }
+
+          const link = `/orders/${newOrder.id}`;
+          setNotifications(prev => [
+            {
+              id: `order-upd-${newOrder.id}-${Date.now()}`,
+              title,
+              body,
+              time: new Date().toISOString(),
+              read: false,
+              url: link
+            },
+            ...prev
+          ]);
+          showDesktopNotification(title, body, link);
+        }
+      )
+      .subscribe();
+
+    // 4. Listen to payments
+    const paymentSub = supabase
+      .channel('realtime_payments_notification')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'payments' },
+        (payload) => {
+          const newPayment = payload.new;
+          const title = 'Payment Received';
+          const body = `Payment of $${newPayment.amount_paid} received via ${newPayment.payment_method}`;
+          const link = `/payments`;
+
+          setNotifications(prev => [
+            {
+              id: `payment-${newPayment.id}-${Date.now()}`,
+              title,
+              body,
+              time: new Date().toISOString(),
+              read: false,
+              url: link
+            },
+            ...prev
+          ]);
+          showDesktopNotification(title, body, link);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(leadSub);
+      supabase.removeChannel(orderSub);
+      supabase.removeChannel(paymentSub);
+    };
+  }, [router]);
 
   // Close search dropdown on click outside
   useEffect(() => {
@@ -183,18 +350,35 @@ export function Header() {
                 notifications.map(notification => (
                   <div 
                     key={notification.id} 
-                    className={`p-4 border-b border-border last:border-0 hover:bg-background/50 transition-colors flex items-start gap-3 ${notification.read ? 'opacity-60' : ''}`}
+                    onClick={() => {
+                      if (notification.url) {
+                        router.push(notification.url);
+                        setShowNotifications(false);
+                      }
+                      markAsRead(notification.id);
+                    }}
+                    className={`p-4 border-b border-border last:border-0 hover:bg-background/50 transition-colors flex items-start gap-3 cursor-pointer ${notification.read ? 'opacity-60' : ''}`}
                   >
                     <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notification.read ? 'bg-transparent' : 'bg-neon-blue'}`} />
                     <div className="flex-1">
                       <p className={`text-sm ${notification.read ? 'text-foreground/70' : 'text-foreground font-medium'}`}>
                         {notification.title}
                       </p>
-                      <p className="text-xs text-foreground/50 mt-1">{notification.time}</p>
+                      {notification.body && (
+                        <p className="text-xs text-foreground/70 mt-0.5">{notification.body}</p>
+                      )}
+                      <p className="text-[10px] text-foreground/40 mt-1">
+                        {typeof notification.time === 'string' && notification.time.includes('ago') 
+                          ? notification.time 
+                          : new Date(notification.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
                     </div>
                     {!notification.read && (
                       <button 
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification.id);
+                        }}
                         className="text-foreground/40 hover:text-neon-blue p-1"
                         title="Mark as read"
                       >
