@@ -71,10 +71,10 @@ export default function ReceiptPDFView({ params }: { params: Promise<{ id: strin
           </div>
           <div className="text-right flex flex-col items-end">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Paid To</h3>
-            <img src="/logo.jpg" alt="Neon Auto Transport" className="h-10 mb-2 object-contain" />
-            <p className="text-xs text-gray-600">2709 Neabsco Common Pl suit#101</p>
-            <p className="text-xs text-gray-600">Woodbridge, VA 22191</p>
-            <p className="text-sm font-bold text-gray-900 mt-1">(571) 576-7711</p>
+            <img src="/logo.jpg" alt="Best American Auto Transport" className="h-10 mb-2 object-contain" />
+            <p className="text-xs text-gray-600">5 Great Valley Pkwy</p>
+            <p className="text-xs text-gray-600">Malvern, PA 19355</p>
+            <p className="text-sm font-bold text-gray-900 mt-1">(302) 355-5544</p>
           </div>
         </div>
 
@@ -100,7 +100,7 @@ export default function ReceiptPDFView({ params }: { params: Promise<{ id: strin
 
         <div className="text-center text-gray-500 text-sm">
           <p>This is a valid receipt for the transaction mentioned above.</p>
-          <p className="mt-1">If you have any questions, contact us at (571) 576-7711.</p>
+          <p className="mt-1">If you have any questions, contact us at (302) 355-5544.</p>
         </div>
       </div>
     </div>

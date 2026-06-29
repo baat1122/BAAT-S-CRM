@@ -63,10 +63,10 @@ export default function BOLPDFView({ params }: { params: Promise<{ id: string }>
           </div>
           <div className="w-1/2 p-3">
             <h3 className="font-bold text-sm uppercase mb-1">Broker Information</h3>
-            <img src="/logo.jpg" alt="Neon Auto Transport" className="h-8 mb-1 object-contain" />
-            <p className="text-xs">2709 Neabsco Common Pl suit#101</p>
-            <p className="text-xs">Woodbridge, VA 22191</p>
-            <p className="text-sm font-bold mt-1">(571) 576-7711</p>
+            <img src="/logo.jpg" alt="Best American Auto Transport" className="h-8 mb-1 object-contain" />
+            <p className="text-xs">5 Great Valley Pkwy</p>
+            <p className="text-xs">Malvern, PA 19355</p>
+            <p className="text-sm font-bold mt-1">(302) 355-5544</p>
           </div>
         </div>
 

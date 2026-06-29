@@ -223,8 +223,8 @@ export default function OrderFormPage() {
     return (
       <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "sans-serif" }}>
         <div style={{ background: "#0a1128", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}><div style={{ color: "#3b82f6", fontSize: "32px", fontWeight: 900, fontStyle: "italic", lineHeight: 1 }}>N</div><div style={{ marginTop: "6px" }}><div style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1 }}>eon</div><div style={{ fontSize: "10px", color: "#9ca3af", letterSpacing: "1px", textTransform: "uppercase", marginTop: "2px" }}>AUTO TRANSPORT</div></div></div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, fontSize: "14px" }}><Phone size={16} className="text-blue-500" />(571) 576-7711</div>
+          <img src="/logo.jpg" alt="Best American Auto Transport" style={{ maxHeight: "40px", width: "auto" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, fontSize: "14px" }}><Phone size={16} className="text-blue-500" />(302) 355-5544</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 60px)", padding: "16px" }}>
           <div className="bg-white p-10 rounded-xl shadow-lg border border-gray-200 w-full max-w-md text-center">
@@ -291,16 +291,10 @@ export default function OrderFormPage() {
   return (
     <div ref={formRef} style={{ minHeight: "100vh", background: "#f4f7f9", fontFamily: "sans-serif", color: "#333" }}>
       <div style={{ background: "#ffffff", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <div style={{ color: "#3b82f6", fontSize: "32px", fontWeight: 900, fontStyle: "italic", lineHeight: 1 }}>N</div>
-          <div style={{ marginTop: "6px" }}>
-            <div style={{ fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1, color: "#0a1128" }}>eon</div>
-            <div style={{ fontSize: "10px", color: "#9ca3af", letterSpacing: "1px", textTransform: "uppercase", marginTop: "2px" }}>AUTO TRANSPORT</div>
-          </div>
-        </div>
+        <img src="/logo.jpg" alt="Best American Auto Transport" style={{ maxHeight: "40px", width: "auto" }} />
         <div style={{ display: "flex", alignItems: "center", gap: "24px", fontSize: "14px" }}>
-          <a href="tel:+15715767711" style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, color: "#0a1128", textDecoration: "none" }}><Phone size={16} className="text-blue-500" />(571) 576-7711</a>
-          <a href="mailto:info@neonautotransport.com" style={{ border: "1px solid #e2e8f0", padding: "8px 16px", color: "#0a1128", textDecoration: "none", borderRadius: "4px" }}><Mail size={14} className="inline mr-2" /> E-Mail Us</a>
+          <a href="tel:+13023555544" style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, color: "#0a1128", textDecoration: "none" }}><Phone size={16} className="text-blue-500" />(302) 355-5544</a>
+          <a href="mailto:info@bestamericanautotransport.com" style={{ border: "1px solid #e2e8f0", padding: "8px 16px", color: "#0a1128", textDecoration: "none", borderRadius: "4px" }}><Mail size={14} className="inline mr-2" /> E-Mail Us</a>
         </div>
       </div>
       

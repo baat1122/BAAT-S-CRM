@@ -33,9 +33,9 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       <div className="p-6">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="text-blue-500 text-3xl font-black italic leading-none">N</div>
+            <div className="text-blue-500 text-3xl font-black italic leading-none">B</div>
             <div className="mt-1">
-              <div className="text-xl font-extrabold tracking-tight leading-none text-white">eon</div>
+              <div className="text-xl font-extrabold tracking-tight leading-none text-white">est American</div>
               <div className="text-[10px] text-gray-400 tracking-widest uppercase mt-0.5">AUTO TRANSPORT</div>
             </div>
           </div>
@@ -67,7 +67,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-semibold truncate text-white">Admin User</p>
-              <p className="text-xs text-gray-400 truncate">{userEmail || 'admin@neon.com'}</p>
+              <p className="text-xs text-gray-400 truncate">{userEmail || 'admin@bestamericanautotransport.com'}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors ml-2" title="Sign Out">

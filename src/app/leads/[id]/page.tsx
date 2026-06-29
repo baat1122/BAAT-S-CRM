@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, use } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Car, MapPin, Download, Edit, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Car, MapPin, Download, Edit, Plus, Trash2, Mail, RefreshCcw, FileText } from "lucide-react";
 import { VehicleFormList, VehicleFormType } from "@/components/forms/VehicleFormList";
 
 const editLeadSchema = z.object({
@@ -35,6 +35,40 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  const sendQuoteEmail = async () => {
+    if (!quote.email) {
+      alert("Cannot send quote: Customer does not have an email address configured.");
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/send-quote-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quoteId: quote.id })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send email');
+      }
+      
+      alert("Quote email sent successfully.");
+      
+      // Refresh details to show logs
+      const { data: refreshed } = await supabase.from("leads").select("*").eq("id", id).single();
+      if (refreshed) {
+        setQuote(refreshed);
+      }
+    } catch (err: any) {
+      alert(`Failed to send quote email: ${err.message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
@@ -220,6 +254,22 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                 <Download size={16} /> Print/Save PDF
               </a>
 
+              <button 
+                onClick={sendQuoteEmail}
+                disabled={sendingEmail}
+                className="flex items-center gap-2 px-4 py-2 bg-foreground/10 text-foreground font-bold rounded-xl hover:bg-foreground/20 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingEmail ? (
+                  <>
+                    <RefreshCcw className="animate-spin" size={16} /> Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail size={16} /> Send Quote Email
+                  </>
+                )}
+              </button>
+
               {quote.status !== "Converted" && (
                 <button 
                   onClick={() => setShowModal(true)}
@@ -363,6 +413,13 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="glass-panel p-6 rounded-2xl border border-border">
+            <h3 className="font-bold text-lg text-neon-blue flex items-center gap-2 mb-4"><FileText size={18} /> Notes & Communication Logs</h3>
+            <div className="bg-foreground/5 p-4 rounded-xl text-sm border border-border/30 min-h-[100px] whitespace-pre-wrap text-foreground/90">
+              {quote.notes || "No communication logs or notes yet."}
             </div>
           </div>
         </>

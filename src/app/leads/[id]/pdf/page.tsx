@@ -74,20 +74,20 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
         doc.setTextColor(17, 24, 39);
-        doc.text("NEON AUTO TRANSPORT", 40, 60);
+        doc.text("BEST AMERICAN AUTO TRANSPORT", 40, 60);
       }
 
       const textStartY = 25 + logoH + 6;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(75, 85, 99);
-      doc.text("2709 Neabsco Common Pl Suit#101", 40, textStartY);
-      doc.text("Woodbridge, Virginia 22191", 40, textStartY + 13);
+      doc.text("5 Great Valley Pkwy", 40, textStartY);
+      doc.text("Malvern, Pennsylvania 19355", 40, textStartY + 13);
       doc.setFont("helvetica", "bold");
-      doc.text("Phone: (571) 576-7711", 40, textStartY + 26);
+      doc.text("Phone: (302) 355-5544", 40, textStartY + 26);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 116, 139);
-      doc.text("MC: 1703787  |  DOT: 4355879", 40, textStartY + 39);
+      doc.text("MC: 1662088  |  DOT: 4277211", 40, textStartY + 39);
 
       // Separator line position depends on logo height
       const separatorY = Math.max(textStartY + 55, 155);
@@ -230,17 +230,17 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
       doc.setTextColor(107, 114, 128);
-      doc.text("Thank you for choosing Neon Auto Transport.", 306, yPos + 30, { align: "center" });
+      doc.text("Thank you for choosing Best American Auto Transport.", 306, yPos + 30, { align: "center" });
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(17, 24, 39);
-      doc.text("Call us at (571) 576-7711 to book your transport today.", 306, yPos + 50, { align: "center" });
+      doc.text("Call us at (302) 355-5544 to book your transport today.", 306, yPos + 50, { align: "center" });
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(148, 163, 184);
-      doc.text("MC: 1703787  |  DOT: 4355879", 306, yPos + 68, { align: "center" });
+      doc.text("MC: 1662088  |  DOT: 4277211", 306, yPos + 68, { align: "center" });
 
       doc.save(`Quote-${quoteLabel}.pdf`);
     } catch (err) {
@@ -311,14 +311,14 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
               {/* Logo — naturally proportioned */}
               <img
                 src="/logo.jpg"
-                alt="NEON AUTO TRANSPORT"
+                alt="BEST AMERICAN AUTO TRANSPORT"
                 style={{ maxHeight: '90px', maxWidth: '180px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', marginBottom: '8px' }}
               />
               <div className="text-xs text-gray-600 space-y-0.5">
-                <p>2709 Neabsco Common Pl Suit#101</p>
-                <p>Woodbridge, Virginia 22191</p>
-                <p className="font-bold mt-1">Phone: (571) 576-7711</p>
-                <p className="text-gray-500 font-medium">MC: 1703787 &nbsp;|&nbsp; DOT: 4355879</p>
+                <p>5 Great Valley Pkwy</p>
+                <p>Malvern, Pennsylvania 19355</p>
+                <p className="font-bold mt-1">Phone: (302) 355-5544</p>
+                <p className="text-gray-500 font-medium">MC: 1662088 &nbsp;|&nbsp; DOT: 4277211</p>
               </div>
             </div>
             <div className="text-right">
@@ -390,9 +390,9 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
 
           {/* Footer */}
           <div className="mt-16 text-center text-gray-500 text-sm border-t border-gray-200 pt-8">
-            <p>Thank you for choosing Neon Auto Transport.</p>
-            <p className="font-bold mt-1 text-gray-900">Call us at (571) 576-7711 to book your transport today.</p>
-            <p className="text-gray-400 mt-1 text-xs">MC: 1703787 &nbsp;|&nbsp; DOT: 4355879</p>
+            <p>Thank you for choosing Best American Auto Transport.</p>
+            <p className="font-bold mt-1 text-gray-900">Call us at (302) 355-5544 to book your transport today.</p>
+            <p className="text-gray-400 mt-1 text-xs">MC: 1662088 &nbsp;|&nbsp; DOT: 4277211</p>
           </div>
         </div>
       </div>

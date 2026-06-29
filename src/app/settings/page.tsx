@@ -21,8 +21,8 @@ export default function SettingsPage() {
       if (teamData) {
         setTeam(teamData);
       } else if (teamError && teamError.code === '42P01') {
-        // Table doesn't exist, we will use mock data for demo purposes if needed
-        setTeam([{ id: '1', name: 'Admin', role: 'Super Admin', email: 'admin@neontransport.com' }]);
+        // Table doesn't exist, fallback to empty team
+        setTeam([]);
       }
 
       const { data: settingsData } = await supabase.from('company_settings').select('*').limit(1).single();
@@ -30,9 +30,9 @@ export default function SettingsPage() {
         setSettings(settingsData);
       } else {
         setSettings({
-          company_name: "NEON AUTO TRANSPORT",
-          support_phone: "(571) 576-7711",
-          business_address: "2709 Neabsco Common Pl suit#101\nWoodbridge Virginia 22191",
+          company_name: "Best American Auto Transport",
+          support_phone: "(302) 355-5544",
+          business_address: "5 Great Valley Pkwy, Malvern, PA 19355",
           timezone: "Eastern Time (EST)",
           default_currency: "USD ($)"
         });

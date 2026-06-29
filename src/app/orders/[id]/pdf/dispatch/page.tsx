@@ -54,9 +54,9 @@ export default function DispatchSheetPDFView({ params }: { params: Promise<{ id:
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div className="border-2 border-gray-800 p-4">
             <h3 className="font-black bg-gray-800 text-white inline-block px-2 py-1 mb-3 text-sm">BROKER</h3>
-            <img src="/logo.jpg" alt="Neon Auto Transport" className="h-10 mb-2 object-contain" />
-            <p className="text-xs">2709 Neabsco Common Pl suit#101, Woodbridge, VA 22191</p>
-            <p className="text-sm font-bold mt-1">Phone: (571) 576-7711</p>
+            <img src="/logo.jpg" alt="Best American Auto Transport" className="h-10 mb-2 object-contain" />
+            <p className="text-xs">5 Great Valley Pkwy, Malvern, PA 19355</p>
+            <p className="text-sm font-bold mt-1">Phone: (302) 355-5544</p>
           </div>
           <div className="border-2 border-gray-800 p-4">
             <h3 className="font-black bg-gray-800 text-white inline-block px-2 py-1 mb-3 text-sm">CARRIER</h3>

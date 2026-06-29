@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { User, Truck, MapPin, DollarSign, FileText, Link as LinkIcon, Edit, Download, FileSignature, RefreshCcw, Plus, Trash2 } from "lucide-react";
+import { User, Truck, MapPin, DollarSign, FileText, Link as LinkIcon, Edit, Download, FileSignature, RefreshCcw, Plus, Trash2, Mail } from "lucide-react";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdfGenerator";
 
@@ -21,6 +21,45 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
   const [editForm, setEditForm] = useState<any>({});
   const [editVehicles, setEditVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  const sendOrderFormEmail = async () => {
+    if (!order.customers?.email) {
+      alert("Cannot send order form: Customer does not have an email address configured.");
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/send-order-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send email');
+      }
+      
+      alert("Order form sent successfully.");
+      
+      // Refresh order details to show updated logs/notes
+      const { data: refreshed } = await supabase
+        .from("orders")
+        .select(`*, customers (customer_name, phone, email), carriers (company_name, mc_number, dispatcher_phone)`)
+        .eq("id", id)
+        .single();
+        
+      if (refreshed) {
+        setOrder(refreshed);
+      }
+    } catch (err: any) {
+      alert(`Failed to send order form email: ${err.message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -142,13 +181,19 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
               </button>
 
               <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/order-form/${order.id}`);
-                  alert("Link copied to clipboard! Send this to the customer.");
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-foreground/10 text-foreground font-bold rounded-xl hover:bg-foreground/20 transition-colors text-sm"
+                onClick={sendOrderFormEmail}
+                disabled={sendingEmail}
+                className="flex items-center gap-2 px-4 py-2 bg-foreground/10 text-foreground font-bold rounded-xl hover:bg-foreground/20 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <LinkIcon size={16} /> Send to Customer
+                {sendingEmail ? (
+                  <>
+                    <RefreshCcw className="animate-spin" size={16} /> Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail size={16} /> Send Order Form
+                  </>
+                )}
               </button>
 
               <div className="group relative">
@@ -493,6 +538,43 @@ export default function OrderLoadSheet({ params }: { params: Promise<{ id: strin
                 <Link href="/carriers" className="text-xs font-bold text-neon-blue hover:underline">Find a Carrier</Link>
               </div>
             )}
+          </div>
+
+          {/* Notes & Communications Panel */}
+          <div className="glass-panel p-6 rounded-2xl border border-border md:col-span-2">
+            <div className="flex items-center gap-2 mb-4 text-neon-blue border-b border-border/50 pb-2">
+              <FileText size={20} />
+              <h3 className="font-bold text-lg text-foreground">Notes & Dispatch Communication</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Internal Notes */}
+              <div>
+                <h4 className="font-bold text-sm text-foreground/70 mb-2">Internal Notes</h4>
+                <div className="bg-foreground/5 p-4 rounded-xl text-sm border border-border/30 min-h-[100px] whitespace-pre-wrap text-foreground/90">
+                  {order.notes || "No internal notes recorded."}
+                </div>
+              </div>
+              
+              {/* Email History Logs */}
+              <div>
+                <h4 className="font-bold text-sm text-foreground/70 mb-2">Email History Logs</h4>
+                <div className="space-y-3">
+                  {order.email_logs && Array.isArray(order.email_logs) && order.email_logs.length > 0 ? (
+                    order.email_logs.map((log: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center bg-foreground/5 p-3 rounded-xl text-xs border border-border/30">
+                        <div>
+                          <span className="font-bold text-green-400 mr-2">✓ {log.status}</span>
+                          <span className="text-foreground/55">to {log.sent_to}</span>
+                        </div>
+                        <span className="text-foreground/50">{new Date(log.date).toLocaleString()}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-foreground/50 italic p-3">No emails sent yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
