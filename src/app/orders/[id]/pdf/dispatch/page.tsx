@@ -126,7 +126,7 @@ export default function DispatchSheetPDFView({ params }: { params: Promise<{ id:
           <p className="font-bold text-black text-sm mb-1">Dispatch Terms & Conditions:</p>
           <p>1. Carrier is responsible for inspecting vehicles at pickup and delivery. Damage not noted on BOL is the responsibility of the carrier.</p>
           <p>2. Carrier must provide proof of valid insurance naming broker as certificate holder prior to dispatch.</p>
-          <p>3. Do not invoice customer directly. Submit all invoices and signed BOLs to Neon Auto Transport.</p>
+          <p>3. Do not invoice customer directly. Submit all invoices and signed BOLs to Best American Auto Transport.</p>
         </div>
       </div>
     </div>

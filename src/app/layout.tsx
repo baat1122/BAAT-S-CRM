@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Neon Auto Transport CRM",
-  description: "Modern logistics CRM for Neon Auto Transport",
+  title: "Best American Auto Transport CRM",
+  description: "Modern logistics CRM for Best American Auto Transport",
 };
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
