@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Best American Auto Transport CRM",
+  title: "BAAT CRM",
   description: "Modern logistics CRM for Best American Auto Transport",
 };
 
