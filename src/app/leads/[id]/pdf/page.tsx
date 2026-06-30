@@ -274,7 +274,7 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
           <button 
             onClick={generatePDF}
             disabled={!jsPdfLoaded || isDownloading}
-            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2 bg-neon-blue text-white font-bold rounded-lg shadow hover:bg-electric-cyan transition-colors flex items-center gap-2 disabled:opacity-50"
           >
           {isDownloading ? (
             <span className="flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
       <div className="py-8">
         <div id="printable-pdf" className="max-w-4xl mx-auto p-12 bg-white shadow-xl">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-blue-600 pb-6 mb-8">
+          <div className="flex justify-between items-start border-b-2 border-[#8b102b] pb-6 mb-8">
             <div>
               {/* Logo — naturally proportioned */}
               <img
@@ -331,13 +331,13 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
           {/* Customer + Routing */}
           <div className="grid grid-cols-2 gap-12 mb-10">
             <div>
-              <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Customer Details</h3>
+              <h3 className="text-sm font-bold text-[#8b102b] uppercase tracking-wider mb-3">Customer Details</h3>
               <p className="font-bold text-gray-900 text-lg">{quote.customer_name}</p>
               <p className="text-gray-600">{quote.email || 'No email provided'}</p>
               <p className="text-gray-600">{quote.phone || 'No phone provided'}</p>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Routing</h3>
+              <h3 className="text-sm font-bold text-[#8b102b] uppercase tracking-wider mb-3">Routing</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Origin:</span>
@@ -361,7 +361,7 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
 
           {/* Vehicles */}
           <div className="mb-12">
-            <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">Vehicles Included</h3>
+            <h3 className="text-sm font-bold text-[#8b102b] uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">Vehicles Included</h3>
             <div className="space-y-4">
               {vehicles.map((v, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex justify-between items-center">
@@ -378,12 +378,12 @@ export default function QuotePDFView({ params }: { params: Promise<{ id: string 
             </div>
           </div>
 
-          {/* ── Estimated Price Bar (vibrant blue gradient) ── */}
+          {/* ── Estimated Price Bar (vibrant burgundy gradient) ── */}
           <div className="rounded-xl p-8 flex justify-between items-center text-white"
-               style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0ea5e9 100%)' }}>
+               style={{ background: 'linear-gradient(135deg, #590014 0%, #8b102b 50%, #a31c3b 100%)' }}>
             <div>
-              <p className="text-blue-100 font-medium">Estimated Total Price</p>
-              <p className="text-sm text-blue-200 mt-1">Valid for 7 days from generation.</p>
+              <p className="text-red-100 font-medium">Estimated Total Price</p>
+              <p className="text-sm text-red-200 mt-1">Valid for 7 days from generation.</p>
             </div>
             <p className="text-4xl font-black text-white drop-shadow-lg">${quote.estimated_price}</p>
           </div>

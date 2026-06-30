@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neon-blue: #2563eb; /* Corporate Bright Blue */
+  --color-neon-blue: #8b102b; /* Burgundy Primary */
   --color-dark-navy: #0a1128; /* Corporate Navy */
-  --color-electric-cyan: #1d4ed8; /* Darker Blue */
+  --color-electric-cyan: #630519; /* Darker Burgundy */
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -31,8 +31,8 @@
   --foreground: #f8fafc;
   --surface: #1e293b;
   --border: #334155;
-  --color-neon-blue: #3b82f6;
-  --color-electric-cyan: #2563eb;
+  --color-neon-blue: #a31c3b; /* Lighter Burgundy for Dark Mode */
+  --color-electric-cyan: #8b102b;
 }
 
 [data-theme="neon"] {

@@ -31,15 +31,13 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
   return (
     <aside className="w-64 bg-[#0a1128] border-r border-gray-800 h-screen sticky top-0 flex flex-col z-10 hidden md:flex shrink-0 text-white">
       <div className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="text-blue-500 text-3xl font-black italic leading-none">B</div>
-            <div className="mt-1">
-              <div className="text-xl font-extrabold tracking-tight leading-none text-white">est American</div>
-              <div className="text-[10px] text-gray-400 tracking-widest uppercase mt-0.5">AUTO TRANSPORT</div>
-            </div>
-          </div>
-        </div>
+        <Link href="/" className="flex items-center justify-start w-full py-1">
+          <img 
+            src="/logo.jpg" 
+            alt="Best American Auto Transport" 
+            className="h-10 w-auto object-contain rounded-lg"
+          />
+        </Link>
       </div>
       
       <nav className="flex-1 px-4 space-y-1 mt-4">
@@ -50,7 +48,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             <Link 
               key={item.name} 
               href={item.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-blue-600 hover:text-white transition-all duration-200"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-neon-blue hover:text-white transition-all duration-200"
             >
               <Icon size={18} />
               <span className="font-medium text-sm">{item.name}</span>
@@ -61,16 +59,16 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       
       <div className="p-4 border-t border-gray-800 mt-auto bg-[#070b1a]">
         <div className="flex items-center justify-between px-2 py-2">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold uppercase shrink-0 shadow-inner">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-neon-blue flex items-center justify-center text-white font-bold uppercase shrink-0 shadow-inner">
               {userEmail ? userEmail.charAt(0) : 'A'}
             </div>
-            <div className="overflow-hidden">
+            <div className="overflow-hidden min-w-0 flex-1">
               <p className="text-sm font-semibold truncate text-white">Admin User</p>
               <p className="text-xs text-gray-400 truncate">{userEmail || 'admin@bestamericanautotransport.com'}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors ml-2" title="Sign Out">
+          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 transition-colors ml-2 shrink-0" title="Sign Out">
             <LogOut size={18} />
           </button>
         </div>
